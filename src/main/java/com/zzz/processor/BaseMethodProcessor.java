@@ -19,7 +19,7 @@ public abstract class BaseMethodProcessor<T extends Annotation> {
     protected T annotation;
     protected Method method;
     protected Object[] args;
-
+    protected Annotation[][] argsAnnotations;
     protected JdbcTemplate jdbcTemplate;
     protected NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -33,6 +33,10 @@ public abstract class BaseMethodProcessor<T extends Annotation> {
 
     public void setArgs(Object[] args) {
         this.args = args;
+    }
+
+    public void setArgsAnnotations(Annotation[][] argsAnnotations) {
+        this.argsAnnotations = argsAnnotations;
     }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {

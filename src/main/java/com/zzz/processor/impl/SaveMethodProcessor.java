@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.zzz.annotations.Save;
 import com.zzz.processor.BaseMethodProcessor;
 import com.zzz.reflect.ReflectUtils;
+import com.zzz.support.QueryParam;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -36,17 +37,16 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
         // 在Save注解上传入了sql
         if (!"".equals(annotation.value())) {
             if (annotation.named()) {
-                Preconditions.checkArgument(args.length == 1, "在保存时，使用占位保存模式下，仅能传入一个参数！");
-                Preconditions.checkArgument(arg instanceof Map, "在保存时，使用占位保存模式下，仅能传入一个Map<String, Object>类型参数！");
-                Map<String, Object> paramMap = (Map<String, Object>) arg;
+                Preconditions.checkArgument(args.length > 0, "在保存时，使用占位保存模式下，仅能传入一个参数！");
+                QueryParam queryParam = new QueryParam(args, argsAnnotations);
 
                 if (annotation.returnKey()) {
                     KeyHolder keyHolder = new GeneratedKeyHolder();
-                    namedParameterJdbcTemplate.update(annotation.value(), new MapSqlParameterSource(paramMap), keyHolder);
+                    namedParameterJdbcTemplate.update(annotation.value(), new MapSqlParameterSource(queryParam.getParamMap()), keyHolder);
                     return Objects.requireNonNull(keyHolder.getKey()).intValue();
                 }
 
-                return namedParameterJdbcTemplate.update(annotation.value(), paramMap);
+                return namedParameterJdbcTemplate.update(annotation.value(), queryParam.getParamMap());
             } else {
                 if (annotation.returnKey()) {
                     return this.updateForReturnKey(annotation.value(), args);

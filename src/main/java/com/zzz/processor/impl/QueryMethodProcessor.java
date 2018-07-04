@@ -49,7 +49,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
     public Object process() throws Exception {
         this.checkReturnType();
         // 查询参数
-        QueryParam queryParam = new QueryParam(args);
+        QueryParam queryParam = new QueryParam(args, argsAnnotations);
         String sql = this.buildSql(queryParam);
 
         // 没有参数直接查询

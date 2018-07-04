@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.zzz.annotations.Update;
 import com.zzz.processor.BaseMethodProcessor;
 import com.zzz.reflect.ReflectUtils;
+import com.zzz.support.QueryParam;
 
 import java.util.List;
 import java.util.Map;
@@ -25,11 +26,10 @@ public class UpdateMethodProcessor extends BaseMethodProcessor<Update> {
         // 在Update注解上传入了sql
         if (!"".equals(annotation.value())) {
             if (annotation.named()) {
-                Preconditions.checkArgument(args.length == 1, "在更新时，使用占位保存模式下，仅能传入一个参数！");
-                Preconditions.checkArgument(arg instanceof Map, "在更新时，使用占位保存模式下，仅能传入一个Map<String, Object>类型参数！");
-                Map<String, Object> paramMap = (Map<String, Object>) arg;
+                Preconditions.checkArgument(args.length > 0, "在更新时，使用占位保存模式下，仅能传入一个参数！");
+                QueryParam queryParam = new QueryParam(args, argsAnnotations);
 
-                return namedParameterJdbcTemplate.update(annotation.value(), paramMap);
+                return namedParameterJdbcTemplate.update(annotation.value(), queryParam.getParamMap());
             } else {
                 return jdbcTemplate.update(annotation.value(), args);
             }
