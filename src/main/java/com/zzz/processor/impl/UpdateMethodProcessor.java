@@ -39,9 +39,6 @@ public class UpdateMethodProcessor extends BaseMethodProcessor<Update> {
         Map<String, Object> columnMap = ReflectUtils.getColumnValue(arg);
 
         String sql = this.buildSql(arg, idMap, columnMap);
-
-        log.info("生成的sql语句为：[{}]", sql);
-
         Object[] params = new Object[idMap.size() + columnMap.size()];
 
         int i = 0;
@@ -69,6 +66,8 @@ public class UpdateMethodProcessor extends BaseMethodProcessor<Update> {
         sql += Joiner.on(", ").join(propertyStrs);
         sql += " WHERE ";
         sql += Joiner.on(", ").join(idStrs);
+
+        log.debug("生成的sql语句为：[{}]", sql);
 
         return sql;
     }

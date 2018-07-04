@@ -59,9 +59,6 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
         Map<String, Object> map = ReflectUtils.getColumnValue(arg);
         this.handleIdColumn(arg, map);
         String sql = this.buildSql(arg, map);
-
-        log.info("生成的sql语句为：[{}]", sql);
-
         Object[] objects = new Object[map.size()];
         int i = 0;
         for (String key : map.keySet()) {
@@ -129,6 +126,8 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
         sql += "(" + Joiner.on(", ").join(propertyStrs) + ")";
         sql += " VALUES ";
         sql += "(" + Joiner.on(", ").join(markStrs) + ")";
+
+        log.debug("生成的sql语句为：[{}]", sql);
 
         return sql;
     }

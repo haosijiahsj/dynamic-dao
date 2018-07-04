@@ -11,6 +11,7 @@ import com.zzz.page.PageWrapper;
 import com.zzz.processor.BaseMethodProcessor;
 import com.zzz.support.QueryParam;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -91,8 +92,12 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * 校验查询返回值
      */
     private void checkReturnType() {
+        // 返回类型可以与目标类型相同
+        if (annotation.entityClass().equals(method.getReturnType())) {
+            return;
+        }
         boolean check = List.class.equals(method.getReturnType()) || PageWrapper.class.equals(method.getReturnType());
-        Preconditions.checkArgument(check, "查询返回值必须为List或者是PageWrapper，该查询返回值为：[%s]！", method.getReturnType().getName());
+        Preconditions.checkArgument(check, String.format("查询返回值必须为List或者是PageWrapper或与targetClass相同，该查询返回值为：[%s]！", method.getReturnType().getName()));
     }
 
     /**
@@ -108,7 +113,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             return "";
         }
 
-        StringBuilder conditionSql = new StringBuilder(WHERE);
+        StringBuilder conditionSql = new StringBuilder();
         Condition[] conditionAnnos = conditionsAnno.value();
         for (int i = 0; i < conditionAnnos.length; i++) {
             String conditionStr = conditionAnnos[i].value();
@@ -133,8 +138,12 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
                 }
             }
         }
+        // 所有条件没有拼接上不添加WHERE字符
+        if (StringUtils.isEmpty(conditionSql.toString())) {
+            return "";
+        }
 
-        return conditionSql.toString();
+        return WHERE + conditionSql.toString();
     }
 
     /**
@@ -145,7 +154,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      */
     private String buildSql(QueryParam queryParam) {
         String sql = annotation.value() + this.processConditions(method, queryParam.getParamMap());
-        log.info("生成的sql: [{}]", sql);
+        log.debug("生成的sql: [{}]", sql);
 
         return sql;
     }
@@ -160,7 +169,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         int offset = queryParam.getPageParam().getSize() * (queryParam.getPageParam().getPage() - 1);
 
         String pageSql = sql + LIMIT + offset + ", " + queryParam.getPageParam().getSize();
-        log.info("生成的分页sql: [{}]", pageSql);
+        log.debug("生成的分页sql: [{}]", pageSql);
 
         return pageSql;
     }
@@ -193,7 +202,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             sql = "SELECT COUNT(1) FROM (" + sql + ") AS tmp";
         }
 
-        log.info("生成的count sql: [{}]", sql);
+        log.debug("生成的count sql: [{}]", sql);
 
         return sql;
     }
@@ -305,11 +314,20 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      */
     private Object processQueryResult(List<Map<String, Object>> mapList) throws Exception {
         if (CollectionUtils.isEmpty(mapList)) {
+            if (!Void.class.equals(annotation.entityClass()) && annotation.entityClass().equals(method.getReturnType())) {
+                return null;
+            }
+
             return Collections.emptyList();
         }
         if (Void.class.equals(annotation.entityClass())) {
             return mapList;
         } else {
+            if (annotation.entityClass().equals(method.getReturnType())) {
+                Preconditions.checkArgument(mapList.size() == 1, String.format("查询列表有%s条数据大于1条数据！", mapList.size()));
+                return this.rowMap(mapList, annotation.entityClass()).get(0);
+            }
+
             return this.rowMap(mapList, annotation.entityClass());
         }
     }
@@ -324,19 +342,24 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * @throws Exception
      */
     private Object processPageQueryResult(String sql, List<Map<String, Object>> mapList, QueryParam queryParam) throws Exception {
-        if (CollectionUtils.isEmpty(mapList)) {
-            return Collections.emptyList();
-        }
         PageParam pageParam = queryParam.getPageParam();
         // 查询总条数
         long totalRows = this.countQuery(sql, queryParam.getParamMap());
-        int totalPages = ((int) (totalRows / pageParam.getSize())) + 1;
+        int totalPages = 0;
+        if (totalRows != 0) {
+            totalPages = ((int) (totalRows / pageParam.getSize())) + (totalRows % pageParam.getSize() == 0 ? 0 : 1);
+        }
 
         PageWrapper<T> pageWrapper = new PageWrapper<>();
         pageWrapper.setCurPage(pageParam.getPage());
         pageWrapper.setSize(pageParam.getSize());
         pageWrapper.setTotalRows(totalRows);
         pageWrapper.setTotalPages(totalPages);
+
+        if (CollectionUtils.isEmpty(mapList)) {
+            pageWrapper.setContent(Collections.emptyList());
+            return pageWrapper;
+        }
 
         if (Void.class.equals(annotation.entityClass())) {
             pageWrapper.setContent((List<T>) mapList);
