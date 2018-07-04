@@ -44,7 +44,7 @@ public class ReflectUtils {
                 field.setAccessible(false);
                 map.put(columnName, columnValue);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(String.format("在保存时获取字段[%s]的值时出现异常！", field.getName()), e);
+                throw new IllegalArgumentException(String.format("获取字段[%s]的值时出现异常！", field.getName()), e);
             }
         }
 

@@ -37,7 +37,6 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
         // 在Save注解上传入了sql
         if (!"".equals(annotation.value())) {
             if (annotation.named()) {
-                Preconditions.checkArgument(args.length > 0, "在保存时，使用占位保存模式下，仅能传入一个参数！");
                 QueryParam queryParam = new QueryParam(args, argsAnnotations);
 
                 if (annotation.returnKey()) {

@@ -1,0 +1,27 @@
+package com.zzz.service;
+
+import com.zzz.model.EntityPo;
+
+/**
+ * @author 胡胜钧
+ * @date 7/4 0004.
+ */
+public interface SaveService {
+
+    int save1(String name, Integer sex, String tel, Boolean available);
+
+    int save2(String name, Integer sex, String tel, Boolean available);
+
+    int save3(String name, Integer sex, String tel, Boolean available);
+
+    int save4(String name, Integer sex, String tel, Boolean available);
+
+    int save5(String name, Integer sex, String tel, Boolean available);
+
+    int save6(String name, Integer sex, String tel, Boolean available);
+
+    int save7(EntityPo entityPo);
+
+    int save8(EntityPo entityPo);
+
+}

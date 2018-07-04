@@ -7,7 +7,7 @@ import java.lang.annotation.*;
  * 查询注解
  */
 @Documented
-@Target(ElementType.METHOD)
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Param {
     String value();

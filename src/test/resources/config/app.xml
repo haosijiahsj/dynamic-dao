@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/data/jpa
+        http://www.springframework.org/schema/data/jpa/spring-jpa.xsd"
+	   default-autowire="byName">
+
+	<context:component-scan base-package="com.zzz" />
+
+	<!--<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" primary="true">-->
+		<!--<property name="driverClassName" value="com.mysql.jdbc.Driver" />-->
+		<!--<property name="url" value="jdbc:mysql://localhost:3306/hello-world?characterEncoding=utf-8"/>-->
+		<!--<property name="username" value="root" />-->
+		<!--<property name="password" value="123456" />-->
+	<!--</bean>-->
+
+</beans>
