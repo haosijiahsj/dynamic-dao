@@ -127,4 +127,9 @@ public class QueryServiceImpl implements QueryService {
         return dao.query18(name, pageParam).convert(EntityVo.class);
     }
 
+    @Override
+    public PageWrapper<EntityPo> query21(Integer sex, String name, PageParam pageParam) {
+        return dao.query20(sex, name, pageParam);
+    }
+
 }

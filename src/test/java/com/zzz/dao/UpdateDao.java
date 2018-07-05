@@ -28,7 +28,7 @@ public interface UpdateDao {
      * @param map
      * @return
      */
-    @Update(value = "UPDATE entity e SET e.`name_` = :name, e.tel = :tel WHERE e.id = :id", named = true)
+    @Update(value = "UPDATE entity e SET e.`name_` = :name, e.tel = :tel WHERE e.id = :id")
     int update2(Map<String, Object> map);
 
     /**
@@ -38,7 +38,7 @@ public interface UpdateDao {
      * @param tel
      * @return
      */
-    @Update(value = "UPDATE entity e SET e.`name_` = :name, e.tel = :tel WHERE e.id = :id", named = true)
+    @Update(value = "UPDATE entity e SET e.`name_` = :name, e.tel = :tel WHERE e.id = :id")
     int update3(@Param("id") Integer id, @Param("name") String name, @Param("tel") String tel);
 
     /**
@@ -62,7 +62,7 @@ public interface UpdateDao {
      * @param ids
      * @return
      */
-    @Update(value = "DELETE FROM entity WHERE id IN (:ids)", named = true)
+    @Update(value = "DELETE FROM entity WHERE id IN (:ids)")
     int delete2(@Param("ids") List<Integer> ids);
 
 }

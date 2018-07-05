@@ -2,12 +2,13 @@ package com.zzz.reflect;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import com.zzz.utils.TimeUtils;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -41,6 +42,24 @@ public class ReflectUtils {
             try {
                 field.setAccessible(true);
                 Object columnValue = field.get(arg);
+                if (columnValue != null) {
+                    // 处理枚举情况
+                    if (field.getType().isEnum()) {
+                        Enum enumValue = (Enum) columnValue;
+                        Enumerated enumeratedAnno = field.getAnnotation(Enumerated.class);
+                        if (enumeratedAnno != null) {
+                            columnValue = EnumType.STRING.equals(enumeratedAnno.value()) ? enumValue.name() : enumValue.ordinal();
+                        } else {
+                            columnValue = enumValue.name();
+                        }
+                    } else if (LocalDateTime.class.equals(field.getType())) {
+                        columnValue = TimeUtils.convertLocalDateTime2Timestamp((LocalDateTime) columnValue);
+                    } else if (LocalDate.class.equals(field.getType())) {
+                        columnValue = TimeUtils.convertLocalDate2SqlDate((LocalDate) columnValue);
+                    } else if (Date.class.equals(field.getType())) {
+                        columnValue = TimeUtils.convertDate2Timestamp((Date) columnValue);
+                    }
+                }
                 field.setAccessible(false);
                 map.put(columnName, columnValue);
             } catch (IllegalAccessException e) {

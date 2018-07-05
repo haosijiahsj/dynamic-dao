@@ -33,12 +33,10 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
 
     @Override
     public Object process() {
-        Object arg = args[0];
+        QueryParam queryParam = new QueryParam(args, argsAnnotations);
         // 在Save注解上传入了sql
         if (!"".equals(annotation.value())) {
-            if (annotation.named()) {
-                QueryParam queryParam = new QueryParam(args, argsAnnotations);
-
+            if (queryParam.isNamed()) {
                 if (annotation.returnKey()) {
                     KeyHolder keyHolder = new GeneratedKeyHolder();
                     namedParameterJdbcTemplate.update(annotation.value(), new MapSqlParameterSource(queryParam.getParamMap()), keyHolder);
@@ -48,16 +46,16 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
                 return namedParameterJdbcTemplate.update(annotation.value(), queryParam.getParamMap());
             } else {
                 if (annotation.returnKey()) {
-                    return this.updateForReturnKey(annotation.value(), args);
+                    return this.updateForReturnKey(annotation.value(), queryParam.getArgs());
                 }
-                return jdbcTemplate.update(annotation.value(), args);
+                return jdbcTemplate.update(annotation.value(), queryParam.getArgs());
             }
         }
 
-        Preconditions.checkArgument(args.length == 1, "在保存时，使用对象保存模式下，仅能传入一个参数！");
-        Map<String, Object> map = ReflectUtils.getColumnValue(arg);
-        this.handleIdColumn(arg, map);
-        String sql = this.buildSql(arg, map);
+        Preconditions.checkArgument(queryParam.onlyOneArg(), "在保存时，使用对象保存模式下，仅能传入一个参数！");
+        Map<String, Object> map = ReflectUtils.getColumnValue(queryParam.firstArg());
+        this.handleIdColumn(queryParam.firstArg(), map);
+        String sql = this.buildSql(queryParam.firstArg(), map);
         Object[] objects = new Object[map.size()];
         int i = 0;
         for (String key : map.keySet()) {

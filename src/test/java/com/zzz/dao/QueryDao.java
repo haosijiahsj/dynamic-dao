@@ -38,7 +38,7 @@ public interface QueryDao {
      * @param map
      * @return
      */
-    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e WHERE e.sex = :sex", named = true)
+    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e WHERE e.sex = :sex")
     List<Map<String, Object>> query3(Map<String, Object> map);
 
     /**
@@ -46,7 +46,7 @@ public interface QueryDao {
      * @param map
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e WHERE e.sex = :sex", named = true, entityClass = EntityPo.class)
+    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e WHERE e.sex = :sex", entityClass = EntityPo.class)
     List<EntityPo> query4(Map<String, Object> map);
 
     /**
@@ -54,7 +54,7 @@ public interface QueryDao {
      * @param map
      * @return
      */
-    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e", named = true)
+    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e")
     @Conditions({
             @Condition("e.name_ LIKE :name"),
             @Condition("e.sex = :sex"),
@@ -67,7 +67,7 @@ public interface QueryDao {
      * @param map
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", named = true, entityClass = EntityPo.class)
+    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", entityClass = EntityPo.class)
     @Conditions({
             @Condition("e.name_ LIKE :name"),
             @Condition("e.sex = :sex"),
@@ -80,7 +80,7 @@ public interface QueryDao {
      * @param name
      * @return
      */
-    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e WHERE e.name_ LIKE :name", named = true)
+    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e WHERE e.name_ LIKE :name")
     List<Map<String, Object>> query7(@Param("name") String name);
 
     /**
@@ -88,7 +88,7 @@ public interface QueryDao {
      * @param name
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e WHERE e.name_ LIKE :name", named = true, entityClass = EntityPo.class)
+    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e WHERE e.name_ LIKE :name", entityClass = EntityPo.class)
     List<EntityPo> query8(@Param("name") String name);
 
     /**
@@ -102,7 +102,7 @@ public interface QueryDao {
      * 无参数查询返回实体类
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity", entityClass = EntityPo.class)
+    @Query(value = "SELECT * FROM entity", entityClass = EntityPo.class)
     List<EntityPo> query10();
 
     /**
@@ -127,7 +127,7 @@ public interface QueryDao {
      * @param pageParam
      * @return
      */
-    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e", named = true)
+    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e")
     @Conditions({
             @Condition("e.name_ LIKE :name"),
             @Condition("e.sex = :sex"),
@@ -141,7 +141,7 @@ public interface QueryDao {
      * @param pageParam
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", named = true, entityClass = EntityPo.class)
+    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", entityClass = EntityPo.class)
     @Conditions({
             @Condition("e.name_ LIKE :name"),
             @Condition("e.sex = :sex"),
@@ -155,7 +155,7 @@ public interface QueryDao {
      * @param pageParam
      * @return
      */
-    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e", named = true)
+    @Query(value = "SELECT id, name_, sex, tel, available FROM entity e")
     @Conditions({
             @Condition("e.name_ LIKE :name"),
             @Condition("e.sex = :sex"),
@@ -169,7 +169,7 @@ public interface QueryDao {
      * @param pageParam
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", named = true, entityClass = EntityPo.class)
+    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", entityClass = EntityPo.class)
     @Conditions({
             @Condition("e.name_ LIKE :name"),
             @Condition("e.sex = :sex"),
@@ -199,7 +199,7 @@ public interface QueryDao {
      * @param pageParam
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", named = true, entityClass = EntityPo.class)
+    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e", entityClass = EntityPo.class)
     @Conditions({
             @Condition("e.name_ LIKE :name"),
             @Condition("e.sex = :sex"),
@@ -212,7 +212,10 @@ public interface QueryDao {
      * @param ids
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e WHERE e.id IN (:ids)", named = true, entityClass = EntityPo.class)
+    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e WHERE e.id IN (:ids)", entityClass = EntityPo.class)
     List<EntityPo> query19(@Param("ids") List<Integer> ids);
+
+    @Query("SELECT * FROM entity e WHERE e.sex = ? AND e.name_ LIKE ?")
+    PageWrapper<EntityPo> query20(Integer sex, String name, PageParam pageParam);
 
 }

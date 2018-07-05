@@ -10,21 +10,18 @@ import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 import com.zzz.processor.BaseMethodProcessor;
 import com.zzz.support.QueryParam;
+import com.zzz.utils.TimeUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.persistence.Column;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,35 +50,50 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         String sql = this.buildSql(queryParam);
 
         // 没有参数直接查询
-        if (args == null || args.length == 0) {
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
-            return this.processQueryResult(list);
+        if (queryParam.emptyArgs()) {
+            return this.processQueryResult(jdbcTemplate.queryForList(sql));
         }
 
         // 处理查询当仅传入PageParam参数时
-        if (args.length == 1 && queryParam.getPageParam() != null) {
+        if (queryParam.onlyOnePageParamArg()) {
             List<Map<String, Object>> list = jdbcTemplate.queryForList(this.buildPageSql(sql, queryParam));
             // 返回值是PageWrapper
-            if (queryParam.getPageParam() != null && PageWrapper.class.equals(method.getReturnType())) {
+            if (PageWrapper.class.equals(method.getReturnType())) {
                 return this.processPageQueryResult(sql, list, queryParam);
             } else {
                 return this.processQueryResult(list);
             }
         }
 
-        // 使用的是?占位符方式，此方式不支持分页
-        if (!annotation.named()) {
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, args);
-            return this.processQueryResult(list);
+        // 使用的是?占位符方式
+        if (!queryParam.isNamed()) {
+            String executeSql = sql;
+            if (queryParam.isPageQuery()) {
+                executeSql = this.buildPageSql(sql, queryParam);
+                Preconditions.checkArgument(queryParam.pageParamIsLastArg(), "使用?占位符需要分页时，PageParam必须放在最后一位！");
+
+                Object[] newArgs = new Object[queryParam.getArgs().length - 1];
+                System.arraycopy(queryParam.getArgs(), 0, newArgs, 0, newArgs.length);
+                queryParam.setArgs(newArgs);
+            }
+
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(executeSql, queryParam.getArgs());
+            if (queryParam.isPageQuery() && PageWrapper.class.equals(method.getReturnType())) {
+                // 传入原sql，用于生成count sql
+                return this.processPageQueryResult(sql, list, queryParam);
+            } else {
+                return this.processQueryResult(list);
+            }
         }
 
         String executeSql = sql;
-        if (queryParam.getPageParam() != null) {
+        if (queryParam.isPageQuery()) {
             executeSql = this.buildPageSql(sql, queryParam);
         }
         List<Map<String, Object>> list = namedParameterJdbcTemplate.queryForList(executeSql, queryParam.getParamMap());
         // 返回值是PageWrapper
-        if (queryParam.getPageParam() != null && PageWrapper.class.equals(method.getReturnType())) {
+        if (queryParam.isPageQuery() && PageWrapper.class.equals(method.getReturnType())) {
+            // 传入原sql，用于生成count sql
             return this.processPageQueryResult(sql, list, queryParam);
         } else {
             return this.processQueryResult(list);
@@ -229,7 +241,12 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         for (Map<String, Object> map : resultList) {
             Object object = targetClass.newInstance();
             for (Field field : fields) {
-                Object value = map.get(field.getName().toUpperCase());
+                String fieldName = field.getName();
+                Column columnAnno = field.getAnnotation(Column.class);
+                if (columnAnno != null && !"".equals(columnAnno.name())) {
+                    fieldName = columnAnno.name();
+                }
+                Object value = map.get(fieldName.toUpperCase());
                 if (value == null) {
                     continue;
                 }
@@ -274,22 +291,19 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
                 } else if (Timestamp.class.equals(columnType)) {
                     // 支持java8日期
                     if (LocalDateTime.class.equals(fieldType)) {
-                        Instant instant = ((Date) value).toInstant();
-                        ZoneId zoneId = ZoneId.systemDefault();
-                        field.set(object, instant.atZone(zoneId).toLocalDateTime());
+                        field.set(object, TimeUtils.convertTimestamp2LocalDateTime((Timestamp) value));
                     } else {
                         field.set(object, new Date(((Timestamp) value).getTime()));
                     }
                 } else if (java.sql.Date.class.equals(columnType)) {
                     // 支持java8日期
                     if (LocalDate.class.equals(fieldType)) {
-                        Instant instant = ((Date) value).toInstant();
-                        ZoneId zoneId = ZoneId.systemDefault();
-                        field.set(object, instant.atZone(zoneId).toLocalDate());
+                        field.set(object, TimeUtils.convertSqlDate2LocalDate((java.sql.Date) value));
                     } else {
                         field.set(object, new Date(((java.sql.Date) value).getTime()));
                     }
                 } else if (fieldType.isEnum()) {
+                    // 支持枚举
                     Enum<?> enums = Enum.valueOf((Class<Enum>) fieldType, value.toString());
                     field.set(object, enums);
                 } else {
@@ -344,7 +358,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
     private Object processPageQueryResult(String sql, List<Map<String, Object>> mapList, QueryParam queryParam) throws Exception {
         PageParam pageParam = queryParam.getPageParam();
         // 查询总条数
-        long totalRows = this.countQuery(sql, queryParam.getParamMap());
+        long totalRows = this.countQuery(sql, queryParam);
         int totalPages = 0;
         if (totalRows != 0) {
             totalPages = ((int) (totalRows / pageParam.getSize())) + (totalRows % pageParam.getSize() == 0 ? 0 : 1);
@@ -374,11 +388,17 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * 查询总条数
      *
      * @param sql
-     * @param paramMap
+     * @param queryParam
      * @return
      */
-    private long countQuery(String sql, Map<String, Object> paramMap) {
-        Long totalRows = namedParameterJdbcTemplate.queryForObject(this.buildCountSql(sql), paramMap, Long.class);
+    private long countQuery(String sql, QueryParam queryParam) {
+        Long totalRows;
+        String countSql = this.buildCountSql(sql);
+        if (queryParam.isNamed()) {
+            totalRows = namedParameterJdbcTemplate.queryForObject(countSql, queryParam.getParamMap(), Long.class);
+        } else {
+            totalRows = jdbcTemplate.queryForObject(countSql, queryParam.getArgs(), Long.class);
+        }
 
         return totalRows == null ? 0L : totalRows;
     }

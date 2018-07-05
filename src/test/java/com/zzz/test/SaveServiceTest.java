@@ -1,11 +1,14 @@
 package com.zzz.test;
 
 import com.zzz.model.EntityPo;
+import com.zzz.model.Status;
 import com.zzz.service.SaveService;
 import com.zzz.utils.ServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.time.LocalDateTime;
 
 /**
  * @author 胡胜钧
@@ -72,10 +75,12 @@ public class SaveServiceTest {
     @Test
     public void save8Test() {
         EntityPo entityPo = new EntityPo();
-        entityPo.setName("zzz");
+        entityPo.setName("aaa");
         entityPo.setSex(1);
         entityPo.setTel("18812345678");
         entityPo.setAvailable(false);
+        entityPo.setCreateTime(LocalDateTime.now());
+        entityPo.setStatus(Status.SUCCESS);
 
         int n = service.save8(entityPo);
         log.info("{}", n);

@@ -3,6 +3,9 @@ package com.zzz.model;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * @author 胡胜钧
@@ -29,5 +32,12 @@ public class EntityPo {
 
     @Column
     private Boolean available;
+
+    @Column(name = "create_time")
+    private LocalDateTime createTime;
+
+    @Column(name = "status_")
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
 }

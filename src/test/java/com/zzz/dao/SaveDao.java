@@ -39,7 +39,7 @@ public interface SaveDao {
      * @param map
      * @return
      */
-    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)", named = true)
+    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)")
     int save3(Map<String, Object> map);
 
     /**
@@ -47,7 +47,7 @@ public interface SaveDao {
      * @param map
      * @return
      */
-    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)", named = true, returnKey = true)
+    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)", returnKey = true)
     int save4(Map<String, Object> map);
 
     /**
@@ -58,7 +58,7 @@ public interface SaveDao {
      * @param available
      * @return
      */
-    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)", named = true)
+    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)")
     int save5(@Param("name") String name, @Param("sex") Integer sex, @Param("tel") String tel, @Param("available") Boolean available);
 
     /**
@@ -69,7 +69,7 @@ public interface SaveDao {
      * @param available
      * @return
      */
-    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)", named = true, returnKey = true)
+    @Save(value = "INSERT INTO entity(`name_`, `sex`, `tel`, `available`) VALUES (:name, :sex, :tel, :available)", returnKey = true)
     int save6(@Param("name") String name, @Param("sex") Integer sex, @Param("tel") String tel, @Param("available") Boolean available);
 
     /**

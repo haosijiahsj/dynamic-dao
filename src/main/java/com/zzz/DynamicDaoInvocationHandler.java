@@ -1,14 +1,8 @@
 package com.zzz;
 
-import com.zzz.annotations.BatchUpdate;
-import com.zzz.annotations.Query;
-import com.zzz.annotations.Save;
-import com.zzz.annotations.Update;
+import com.zzz.annotations.*;
 import com.zzz.processor.BaseMethodProcessor;
-import com.zzz.processor.impl.BatchUpdateMethodProcessor;
-import com.zzz.processor.impl.QueryMethodProcessor;
-import com.zzz.processor.impl.SaveMethodProcessor;
-import com.zzz.processor.impl.UpdateMethodProcessor;
+import com.zzz.processor.impl.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,6 +40,8 @@ public class DynamicDaoInvocationHandler implements InvocationHandler {
                 methodProcessor = new QueryMethodProcessor();
             } else if (BatchUpdate.class.equals(annotationType)) {
                 methodProcessor = new BatchUpdateMethodProcessor();
+            } else if (Execute.class.equals(annotationType)) {
+                methodProcessor = new ExecuteMethodProcessor();
             }
 
             if (methodProcessor != null) {

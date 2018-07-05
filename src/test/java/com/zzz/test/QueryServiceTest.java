@@ -181,4 +181,10 @@ public class QueryServiceTest {
         log.info("{}", pageWrapper);
     }
 
+    @Test
+    public void query21Test() {
+        PageWrapper<EntityPo> pageWrapper = service.query21(1,"%a%", PageParam.of(1, 100));
+        log.info("{}", pageWrapper);
+    }
+
 }

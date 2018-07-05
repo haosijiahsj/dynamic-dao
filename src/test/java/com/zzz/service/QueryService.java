@@ -56,4 +56,6 @@ public interface QueryService {
 
     PageWrapper<EntityVo> query20(String name, PageParam pageParam);
 
+    PageWrapper<EntityPo> query21(Integer sex, String name, PageParam pageParam);
+
 }

@@ -1,14 +1,11 @@
 package com.zzz.support;
 
 import com.google.common.collect.Maps;
-import com.zzz.annotations.query.Condition;
-import com.zzz.annotations.query.Conditions;
 import com.zzz.annotations.query.Param;
 import com.zzz.page.PageParam;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -23,6 +20,7 @@ public class QueryParam {
     private Map<String, Object> paramMap;
     private Object[] args;
     private Annotation[][] argsAnnotations;
+    private boolean named;
 
     public QueryParam(Object[] args, Annotation[][] argsAnnotations) {
         if (args == null) {
@@ -54,6 +52,56 @@ public class QueryParam {
                 this.pageParam = (PageParam) args[i];
             }
         }
+        // 若初始化后paramMap不为空则是命名参数方式
+        this.named = !this.paramMap.isEmpty();
+    }
+
+    /**
+     * 没有参数
+     * @return
+     */
+    public boolean emptyArgs() {
+        return this.args.length == 0;
+    }
+
+    /**
+     * 仅有一个参数
+     * @return
+     */
+    public boolean onlyOneArg() {
+        return this.args.length == 1;
+    }
+
+    /**
+     * 仅有一个查询分页的参数
+     * @return
+     */
+    public boolean onlyOnePageParamArg() {
+        return this.args.length == 1 && pageParam != null;
+    }
+
+    /**
+     * 返回第一个参数
+     * @return
+     */
+    public Object firstArg() {
+        return this.args[0];
+    }
+
+    /**
+     * 是否是分页查询
+     * @return
+     */
+    public boolean isPageQuery() {
+        return this.pageParam != null;
+    }
+
+    /**
+     * pageParam是否是最后一个参数
+     * @return
+     */
+    public boolean pageParamIsLastArg() {
+        return this.args[args.length - 1] instanceof PageParam;
     }
 
 }

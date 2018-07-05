@@ -22,23 +22,21 @@ public class UpdateMethodProcessor extends BaseMethodProcessor<Update> {
 
     @Override
     public Object process() {
-        Object arg = args[0];
+        QueryParam queryParam = new QueryParam(args, argsAnnotations);
         // 在Update注解上传入了sql
         if (!"".equals(annotation.value())) {
-            if (annotation.named()) {
-                Preconditions.checkArgument(args.length > 0, "在更新时，使用占位保存模式下，仅能传入一个参数！");
-                QueryParam queryParam = new QueryParam(args, argsAnnotations);
 
+            if (queryParam.isNamed()) {
                 return namedParameterJdbcTemplate.update(annotation.value(), queryParam.getParamMap());
             } else {
                 return jdbcTemplate.update(annotation.value(), args);
             }
         }
+        Preconditions.checkArgument(queryParam.onlyOneArg(), "在保存时，使用对象更新模式下，仅能传入一个参数！");
+        Map<String, Object> idMap = ReflectUtils.getIdValue(queryParam.firstArg());
+        Map<String, Object> columnMap = ReflectUtils.getColumnValue(queryParam.firstArg());
 
-        Map<String, Object> idMap = ReflectUtils.getIdValue(arg);
-        Map<String, Object> columnMap = ReflectUtils.getColumnValue(arg);
-
-        String sql = this.buildSql(arg, idMap, columnMap);
+        String sql = this.buildSql(queryParam.firstArg(), idMap, columnMap);
         Object[] params = new Object[idMap.size() + columnMap.size()];
 
         int i = 0;
@@ -54,6 +52,13 @@ public class UpdateMethodProcessor extends BaseMethodProcessor<Update> {
         return jdbcTemplate.update(sql, params);
     }
 
+    /**
+     * 组装sql语句
+     * @param arg
+     * @param idMap
+     * @param columnMap
+     * @return
+     */
     private String buildSql(Object arg, Map<String, Object> idMap, Map<String, Object> columnMap) {
         String sql = UPDATE + ReflectUtils.getTableName(arg) + " SET ";
 

@@ -10,5 +10,4 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Update {
     String value() default "";
-    boolean named() default false;
 }
