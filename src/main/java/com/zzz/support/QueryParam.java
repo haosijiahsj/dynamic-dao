@@ -25,7 +25,11 @@ public class QueryParam {
     private Annotation[][] argsAnnotations;
 
     public QueryParam(Object[] args, Annotation[][] argsAnnotations) {
-        this.args = args;
+        if (args == null) {
+            this.args = new Object[] {};
+        } else {
+            this.args = args;
+        }
         this.paramMap = Maps.newHashMap();
         this.argsAnnotations = argsAnnotations;
         this.init();

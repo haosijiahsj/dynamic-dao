@@ -20,7 +20,7 @@ public class TransactionConfig {
     private DataSource dataSource;
 
     @Bean
-    public DataSourceTransactionManager fmsDevTransactionManager() {
+    public DataSourceTransactionManager transactionManager() {
         log.info("初始化事务配置！");
         return new DataSourceTransactionManager(dataSource);
     }

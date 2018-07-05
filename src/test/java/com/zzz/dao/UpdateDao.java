@@ -4,6 +4,7 @@ import com.zzz.annotations.Update;
 import com.zzz.annotations.query.Param;
 import com.zzz.model.EntityPo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,5 +48,21 @@ public interface UpdateDao {
      */
     @Update
     int update4(EntityPo entityPo);
+
+    /**
+     * 删除一条数据
+     * @param id
+     * @return
+     */
+    @Update(value = "DELETE FROM entity WHERE id = ?")
+    int delete1(int id);
+
+    /**
+     * 删除多条数据
+     * @param ids
+     * @return
+     */
+    @Update(value = "DELETE FROM entity WHERE id IN (:ids)", named = true)
+    int delete2(@Param("ids") List<Integer> ids);
 
 }

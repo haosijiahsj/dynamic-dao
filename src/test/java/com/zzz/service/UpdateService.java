@@ -2,6 +2,7 @@ package com.zzz.service;
 
 import com.zzz.model.EntityPo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,5 +18,9 @@ public interface UpdateService {
     int update3(Integer id, String name, String tel);
 
     int update4(EntityPo entityPo);
+
+    int delete1(Integer id);
+
+    int delete2(List<Integer> ids);
 
 }

@@ -1,5 +1,6 @@
 package com.zzz.test;
 
+import com.google.common.collect.Lists;
 import com.zzz.model.EntityPo;
 import com.zzz.service.UpdateService;
 import com.zzz.utils.ServiceUtils;
@@ -48,6 +49,18 @@ public class UpdateServiceTest {
         entityPo.setAvailable(false);
 
         int n = service.update4(entityPo);
+        log.info("{}", n);
+    }
+
+    @Test
+    public void delete1Test() {
+        int n = service.delete1(1);
+        log.info("{}", n);
+    }
+
+    @Test
+    public void delete2Test() {
+        int n = service.delete2(Lists.newArrayList(1, 2, 3));
         log.info("{}", n);
     }
 

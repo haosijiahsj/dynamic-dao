@@ -80,7 +80,7 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
             try {
                 field.set(bean, dynamicDao);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("dynamic dao 注入失败！");
+                throw new IllegalArgumentException("dynamic dao注入失败！");
             }
             field.setAccessible(false);
         }

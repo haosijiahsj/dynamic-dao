@@ -7,6 +7,7 @@ import com.zzz.model.EntityPo;
 import com.zzz.service.UpdateService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +42,16 @@ public class UpdateServiceImpl implements UpdateService {
     @Override
     public int update4(EntityPo entityPo) {
         return dao.update4(entityPo);
+    }
+
+    @Override
+    public int delete1(Integer id) {
+        return dao.delete1(id);
+    }
+
+    @Override
+    public int delete2(List<Integer> ids) {
+        return dao.delete2(ids);
     }
 
 }

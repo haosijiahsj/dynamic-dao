@@ -53,7 +53,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         String sql = this.buildSql(queryParam);
 
         // 没有参数直接查询
-        if (args.length == 0) {
+        if (args == null || args.length == 0) {
             List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
             return this.processQueryResult(list);
         }
@@ -97,7 +97,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             return;
         }
         boolean check = List.class.equals(method.getReturnType()) || PageWrapper.class.equals(method.getReturnType());
-        Preconditions.checkArgument(check, String.format("查询返回值必须为List或者是PageWrapper或与targetClass相同，该查询返回值为：[%s]！", method.getReturnType().getName()));
+        Preconditions.checkArgument(check, String.format("查询返回值必须为List或者是PageWrapper或与entityClass相同，该查询返回值为：[%s]！", method.getReturnType().getName()));
     }
 
     /**

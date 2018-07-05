@@ -9,6 +9,8 @@ import com.zzz.processor.impl.BatchUpdateMethodProcessor;
 import com.zzz.processor.impl.QueryMethodProcessor;
 import com.zzz.processor.impl.SaveMethodProcessor;
 import com.zzz.processor.impl.UpdateMethodProcessor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.lang.annotation.Annotation;
@@ -19,6 +21,7 @@ import java.lang.reflect.Method;
  * @author 胡胜钧
  * @date 6/30 0030.
  */
+@Slf4j
 @SuppressWarnings("unchecked")
 public class DynamicDaoInvocationHandler implements InvocationHandler {
 
@@ -52,7 +55,12 @@ public class DynamicDaoInvocationHandler implements InvocationHandler {
                 methodProcessor.setArgsAnnotations(method.getParameterAnnotations());
                 methodProcessor.setJdbcTemplate(jdbcTemplate);
 
-                return methodProcessor.process();
+                StopWatch stopWatch = StopWatch.createStarted();
+                Object methodReturnValue = methodProcessor.process();
+                stopWatch.stop();
+                log.debug("运行耗时：{}ms", stopWatch.getTime());
+
+                return methodReturnValue;
             }
         }
 
