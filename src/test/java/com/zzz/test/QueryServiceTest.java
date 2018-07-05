@@ -3,6 +3,7 @@ package com.zzz.test;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.zzz.model.EntityPo;
+import com.zzz.model.EntityVo;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 import com.zzz.service.QueryService;
@@ -172,6 +173,12 @@ public class QueryServiceTest {
     public void query19Test() {
         List<EntityPo> list = service.query19(Lists.newArrayList(5, 6));
         log.info("{}", list);
+    }
+
+    @Test
+    public void query20Test() {
+        PageWrapper<EntityVo> pageWrapper = service.query20("%z%", PageParam.of(2, 2));
+        log.info("{}", pageWrapper);
     }
 
 }

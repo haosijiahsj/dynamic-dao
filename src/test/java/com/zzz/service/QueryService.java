@@ -1,6 +1,7 @@
 package com.zzz.service;
 
 import com.zzz.model.EntityPo;
+import com.zzz.model.EntityVo;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 
@@ -52,5 +53,7 @@ public interface QueryService {
     PageWrapper<EntityPo> query18(String name, PageParam pageParam);
 
     List<EntityPo> query19(List<Integer> ids);
+
+    PageWrapper<EntityVo> query20(String name, PageParam pageParam);
 
 }

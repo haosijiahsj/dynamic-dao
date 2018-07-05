@@ -3,6 +3,7 @@ package com.zzz.service.impl;
 import com.zzz.DynamicDao;
 import com.zzz.dao.QueryDao;
 import com.zzz.model.EntityPo;
+import com.zzz.model.EntityVo;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 import com.zzz.service.QueryService;
@@ -119,6 +120,11 @@ public class QueryServiceImpl implements QueryService {
     @Override
     public List<EntityPo> query19(List<Integer> ids) {
         return dao.query19(ids);
+    }
+
+    @Override
+    public PageWrapper<EntityVo> query20(String name, PageParam pageParam) {
+        return dao.query18(name, pageParam).convert(EntityVo.class);
     }
 
 }
