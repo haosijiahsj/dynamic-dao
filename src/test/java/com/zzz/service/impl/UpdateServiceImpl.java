@@ -54,4 +54,14 @@ public class UpdateServiceImpl implements UpdateService {
         return dao.delete2(ids);
     }
 
+    @Override
+    public void batchUpdate1(List<Object[]> objects) {
+        dao.batchUpdate1(objects);
+    }
+
+    @Override
+    public void batchUpdate2(List<Map<String, Object>> objects) {
+        dao.batchUpdate2(objects);
+    }
+
 }

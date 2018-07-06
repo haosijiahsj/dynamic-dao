@@ -23,4 +23,8 @@ public interface UpdateService {
 
     int delete2(List<Integer> ids);
 
+    void batchUpdate1(List<Object[]> objects);
+
+    void batchUpdate2(List<Map<String, Object>> objects);
+
 }

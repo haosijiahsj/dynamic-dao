@@ -32,7 +32,7 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
     private static final String INSERT = "INSERT INTO ";
 
     @Override
-    public Object process() {
+    public Object process() throws Exception {
         QueryParam queryParam = new QueryParam(args, argsAnnotations);
         // 在Save注解上传入了sql
         if (!"".equals(annotation.value())) {
@@ -75,7 +75,7 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
      * @param arg
      * @param map
      */
-    private void handleIdColumn(Object arg, Map<String, Object> map) {
+    private void handleIdColumn(Object arg, Map<String, Object> map) throws Exception {
         Field[] fields = arg.getClass().getDeclaredFields();
         for (Field field : fields) {
             Id idAnno = field.getAnnotation(Id.class);
@@ -91,15 +91,10 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
                 continue;
             }
 
-            // 主键自增
+            // 若主键不是自增的，则需要获取用户传入的值
             if (!generatedValueAnno.strategy().equals(GenerationType.IDENTITY)) {
                 String columnName = "".equals(columnAnno.name()) ? field.getName() : columnAnno.name();
-                try {
-                    Object columnValue = field.get(arg);
-                    map.put(columnName, columnValue);
-                } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(String.format("获取字段[%s]的值时出现异常！", field.getName()), e);
-                }
+                map.put(columnName, field.get(arg));
             }
         }
     }

@@ -10,9 +10,9 @@ import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 import com.zzz.processor.BaseMethodProcessor;
 import com.zzz.support.QueryParam;
+import com.zzz.utils.CollectionUtils;
+import com.zzz.utils.StringUtils;
 import com.zzz.utils.TimeUtils;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.Column;
 import java.lang.reflect.Field;

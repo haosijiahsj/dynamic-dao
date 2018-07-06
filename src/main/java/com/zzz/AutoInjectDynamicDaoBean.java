@@ -1,7 +1,7 @@
 package com.zzz;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.zzz.exceptions.DynamicDaoException;
+import com.zzz.utils.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -65,7 +65,7 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
         }
 
         Field[] fields = bean.getClass().getDeclaredFields();
-        if (ArrayUtils.isEmpty(fields)) {
+        if (fields == null || fields.length == 0) {
             return bean;
         }
 
@@ -80,7 +80,7 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
             try {
                 field.set(bean, dynamicDao);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException("dynamic dao注入失败！");
+                throw new DynamicDaoException("dynamic dao代理失败！", e);
             }
             field.setAccessible(false);
         }

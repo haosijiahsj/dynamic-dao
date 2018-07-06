@@ -4,7 +4,6 @@ import com.zzz.annotations.*;
 import com.zzz.processor.BaseMethodProcessor;
 import com.zzz.processor.impl.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.lang.annotation.Annotation;
@@ -51,10 +50,10 @@ public class DynamicDaoInvocationHandler implements InvocationHandler {
                 methodProcessor.setArgsAnnotations(method.getParameterAnnotations());
                 methodProcessor.setJdbcTemplate(jdbcTemplate);
 
-                StopWatch stopWatch = StopWatch.createStarted();
+                long begin = System.currentTimeMillis();
                 Object methodReturnValue = methodProcessor.process();
-                stopWatch.stop();
-                log.debug("运行耗时：{}ms", stopWatch.getTime());
+                long end = System.currentTimeMillis();
+                log.debug("运行耗时：{}ms", end - begin);
 
                 return methodReturnValue;
             }

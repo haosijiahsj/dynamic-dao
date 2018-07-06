@@ -22,7 +22,7 @@ public class BatchUpdateMethodProcessor extends BaseMethodProcessor<BatchUpdate>
         Preconditions.checkArgument(queryParam.onlyOneArg(), "批量操作只允许传入一个参数！");
         Preconditions.checkArgument(queryParam.firstArg() instanceof List, "批量操作只允许传入一个List参数！");
 
-        if (queryParam.isNamed()) {
+        if (annotation.named()) {
             List<Map<String, ?>> mapList = (List<Map<String, ?>>) queryParam.firstArg();
 
             Map<String, ?>[] maps = mapList.toArray(new Map[0]);

@@ -10,4 +10,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BatchUpdate {
     String value();
+    boolean named() default false;
 }

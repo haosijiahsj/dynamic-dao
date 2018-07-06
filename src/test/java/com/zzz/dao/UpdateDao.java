@@ -1,5 +1,6 @@
 package com.zzz.dao;
 
+import com.zzz.annotations.BatchUpdate;
 import com.zzz.annotations.Update;
 import com.zzz.annotations.query.Param;
 import com.zzz.model.EntityPo;
@@ -64,5 +65,11 @@ public interface UpdateDao {
      */
     @Update(value = "DELETE FROM entity WHERE id IN (:ids)")
     int delete2(@Param("ids") List<Integer> ids);
+
+    @BatchUpdate("UPDATE entity e SET e.name_ = ? where e.id = ?")
+    void batchUpdate1(List<Object[]> objects);
+
+    @BatchUpdate(value = "UPDATE entity e SET e.name_ = :name where e.id = :id", named = true)
+    void batchUpdate2(List<Map<String, Object>> objects);
 
 }
