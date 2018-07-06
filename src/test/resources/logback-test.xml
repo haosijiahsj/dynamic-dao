@@ -37,11 +37,12 @@
 		<!--</filter>-->
 	</appender>
 
-	<root level="DEBUG">
+	<root level="INFO">
 		<appender-ref ref="STDOUT" />
 	</root>
 
-	<logger name="com.zzz.processor" level="DEBUG" />
-	<logger name="com.zzz.DynamicDaoInvocationHandler" level="DEBUG" />
+	<logger name="com.zzz" level="DEBUG" />
+	<logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG" />
+	<logger name="org.springframework.jdbc.datasource.DataSourceTransactionManager" level="DEBUG" />
 
 </configuration>

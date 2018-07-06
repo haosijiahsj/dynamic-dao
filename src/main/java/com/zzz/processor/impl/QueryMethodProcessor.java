@@ -49,35 +49,21 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         QueryParam queryParam = new QueryParam(args, argsAnnotations);
         String sql = this.buildSql(queryParam);
 
-        // 没有参数直接查询
-        if (queryParam.emptyArgs()) {
-            return this.processQueryResult(jdbcTemplate.queryForList(sql));
-        }
-
-        // 处理查询当仅传入PageParam参数时
-        if (queryParam.onlyOnePageParamArg()) {
-            List<Map<String, Object>> list = jdbcTemplate.queryForList(this.buildPageSql(sql, queryParam));
-            // 返回值是PageWrapper
-            if (PageWrapper.class.equals(method.getReturnType())) {
-                return this.processPageQueryResult(sql, list, queryParam);
-            } else {
-                return this.processQueryResult(list);
-            }
-        }
-
         // 使用的是?占位符方式
         if (!queryParam.isNamed()) {
             String executeSql = sql;
+            // 分页查询
             if (queryParam.isPageQuery()) {
                 executeSql = this.buildPageSql(sql, queryParam);
                 Preconditions.checkArgument(queryParam.pageParamIsLastArg(), "使用?占位符需要分页时，PageParam必须放在最后一位！");
 
+                // 将最后一个参数pageParam排除
                 Object[] newArgs = new Object[queryParam.getArgs().length - 1];
                 System.arraycopy(queryParam.getArgs(), 0, newArgs, 0, newArgs.length);
                 queryParam.setArgs(newArgs);
             }
-
             List<Map<String, Object>> list = jdbcTemplate.queryForList(executeSql, queryParam.getArgs());
+            // 返回值是PageWrapper
             if (queryParam.isPageQuery() && PageWrapper.class.equals(method.getReturnType())) {
                 // 传入原sql，用于生成count sql
                 return this.processPageQueryResult(sql, list, queryParam);
@@ -86,6 +72,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             }
         }
 
+        // 使用的是命名占位符方式
         String executeSql = sql;
         if (queryParam.isPageQuery()) {
             executeSql = this.buildPageSql(sql, queryParam);
