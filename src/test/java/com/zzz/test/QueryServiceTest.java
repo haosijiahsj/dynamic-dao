@@ -143,6 +143,7 @@ public class QueryServiceTest {
         Map<String, Object> map = Maps.newHashMap();
         map.put("sex", 1);
         map.put("name", "%z%");
+        map.put("dynamicDaoSize", 20);
         PageWrapper<EntityPo> pageWrapper = service.query15(map, PageParam.of(2, 2));
         log.info("{}", pageWrapper);
     }

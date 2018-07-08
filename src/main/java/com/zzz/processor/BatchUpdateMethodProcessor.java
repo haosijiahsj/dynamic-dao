@@ -1,8 +1,7 @@
-package com.zzz.processor.impl;
+package com.zzz.processor;
 
 import com.google.common.base.Preconditions;
 import com.zzz.annotations.BatchUpdate;
-import com.zzz.processor.BaseMethodProcessor;
 import com.zzz.support.QueryParam;
 
 import java.util.List;

@@ -1,8 +1,7 @@
 package com.zzz;
 
 import com.zzz.annotations.*;
-import com.zzz.processor.BaseMethodProcessor;
-import com.zzz.processor.impl.*;
+import com.zzz.processor.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 

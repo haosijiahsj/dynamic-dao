@@ -1,7 +1,6 @@
-package com.zzz.processor.impl;
+package com.zzz.processor;
 
 import com.zzz.annotations.Execute;
-import com.zzz.processor.BaseMethodProcessor;
 
 /**
  * @author 胡胜钧
