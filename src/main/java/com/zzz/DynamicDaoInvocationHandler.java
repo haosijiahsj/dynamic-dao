@@ -52,13 +52,13 @@ public class DynamicDaoInvocationHandler implements InvocationHandler {
                 long begin = System.currentTimeMillis();
                 Object methodReturnValue = methodProcessor.process();
                 long end = System.currentTimeMillis();
-                log.debug("运行耗时：{}ms", end - begin);
+                log.debug("Running Time : {}ms", end - begin);
 
                 return methodReturnValue;
             }
         }
 
-        throw new IllegalArgumentException("dynamic dao代理执行失败！");
+        throw new IllegalArgumentException("Dynamic dao process failed !");
     }
 
 }

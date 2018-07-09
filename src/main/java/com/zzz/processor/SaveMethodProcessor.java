@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -26,22 +27,13 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
         BaseSqlGenerator<Save> sqlGenerator = new InsertSqlGenerator(method, annotation, queryParam);
         SqlParam sqlParam = sqlGenerator.generateSql();
 
-        // 在Save注解上传入了sql
-        if (!"".equals(annotation.value())) {
-            if (queryParam.isNamed()) {
-                if (annotation.returnKey()) {
-                    KeyHolder keyHolder = new GeneratedKeyHolder();
-                    namedParameterJdbcTemplate.update(sqlParam.getSql(), new MapSqlParameterSource(sqlParam.getParamMap()), keyHolder);
-                    return Objects.requireNonNull(keyHolder.getKey()).intValue();
-                }
-
-                return namedParameterJdbcTemplate.update(sqlParam.getSql(), sqlParam.getParamMap());
-            } else {
-                if (annotation.returnKey()) {
-                    return this.updateForReturnKey(sqlParam.getSql(), sqlParam.getArgs());
-                }
-                return jdbcTemplate.update(sqlParam.getSql(), sqlParam.getArgs());
+        // 使用的是具名参数
+        if (queryParam.isNamed()) {
+            if (annotation.returnKey()) {
+                return this.namedUpdateForReturnKey(sqlParam.getSql(), sqlParam.getParamMap());
             }
+
+            return namedParameterJdbcTemplate.update(sqlParam.getSql(), sqlParam.getParamMap());
         }
 
         if (annotation.returnKey()) {
@@ -57,7 +49,7 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
      * @param objects
      * @return
      */
-    private long updateForReturnKey(String sql, Object[] objects) {
+    private Object updateForReturnKey(String sql, Object[] objects) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -69,7 +61,29 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
             return ps;
         }, keyHolder);
 
-        return Objects.requireNonNull(keyHolder.getKey()).longValue();
+        long key = Objects.requireNonNull(keyHolder.getKey()).longValue();
+        if (Integer.class.equals(method.getReturnType()) || int.class.equals(method.getReturnType())) {
+            return Integer.valueOf(String.valueOf(key));
+        }
+
+        return key;
+    }
+
+    /**
+     * 获取生成的主键named方式
+     * @param sql
+     * @param paramMap
+     * @return
+     */
+    private Object namedUpdateForReturnKey(String sql, Map<String, Object> paramMap) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(paramMap), keyHolder);
+        long key = Objects.requireNonNull(keyHolder.getKey()).longValue();
+        if (Integer.class.equals(method.getReturnType()) || int.class.equals(method.getReturnType())) {
+            return Integer.valueOf(String.valueOf(key));
+        }
+
+        return key;
     }
 
 }

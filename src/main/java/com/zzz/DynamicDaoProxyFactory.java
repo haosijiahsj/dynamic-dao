@@ -14,7 +14,7 @@ public class DynamicDaoProxyFactory {
     private DynamicDaoProxyFactory() {}
 
     public static <T> T create(Class<T> interfaceType, JdbcTemplate jdbcTemplate) {
-        Preconditions.checkArgument(interfaceType.isInterface(), String.format("dynamic dao只能代理接口！而%s不是一个接口类！", interfaceType.getName()));
+        Preconditions.checkArgument(interfaceType.isInterface(), String.format("Dynamic dao just support interface ! '%s' is not an interface !", interfaceType.getName()));
 
         DynamicDaoInvocationHandler invocationHandler = new DynamicDaoInvocationHandler(jdbcTemplate);
 

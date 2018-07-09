@@ -46,7 +46,7 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
      */
     private void checkArgument() {
         if (dataSource == null && jdbcTemplate == null) {
-            throw new IllegalArgumentException("必须在AutoInjectDynamicDaoBean中初始化dataSource或者jdbcTemplate !");
+            throw new IllegalArgumentException("You must initialize 'dataSource' or 'jdbcTemplate' in AutoInjectDynamicDaoBean !");
         }
         if (jdbcTemplate == null) {
             jdbcTemplate = new JdbcTemplate(dataSource);
@@ -80,7 +80,7 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
             try {
                 field.set(bean, dynamicDao);
             } catch (IllegalAccessException e) {
-                throw new DynamicDaoException("dynamic dao代理失败！", e);
+                throw new DynamicDaoException("Dynamic dao can't be injected !", e);
             }
             field.setAccessible(false);
         }

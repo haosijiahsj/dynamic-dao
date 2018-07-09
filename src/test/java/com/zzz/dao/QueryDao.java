@@ -182,7 +182,7 @@ public interface QueryDao {
      * @param id
      * @return
      */
-    @Query(value = "SELECT id, name_ name, sex, tel, available FROM entity e WHERE e.id = ?", entityClass = EntityPo.class)
+    @Query(value = "SELECT * FROM entity e WHERE e.id = ?", entityClass = EntityPo.class)
     EntityPo query16(Integer id);
 
     /**

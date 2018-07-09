@@ -10,6 +10,7 @@ import com.zzz.support.SqlParam;
 import com.zzz.utils.StringUtils;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -43,11 +44,24 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
 
     @Override
     public SqlParam generateSql() {
+        boolean flag = annotation.value().toUpperCase().startsWith("SELECT");
+        Preconditions.checkArgument(flag, "This SQL [%s] may be not a SELECT SQL !", annotation.value());
+
         String sql = annotation.value() + this.processConditions(method, queryParam.getParamMap());
 
-        log.debug("生成的sql: [{}]", sql);
+        SqlParam sqlParam = SqlParam.of(sql, queryParam.getArgs(), queryParam.getParamMap());
+        if (queryParam.onlyOnePageParamArg()) {
+            sqlParam.setArgs(new Object[] {});
+        }
 
-        return SqlParam.of(sql, queryParam.getArgs(), queryParam.getParamMap());
+        log.debug("SQL statement [{}]", sqlParam.getSql());
+        if (queryParam.isNamed()) {
+            log.debug("SQL arguments [{}]", sqlParam.getParamMap());
+        } else {
+            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
+        }
+
+        return sqlParam;
     }
 
     @Override
@@ -70,7 +84,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
 
             sqlParam.setParamMap(map);
         } else {
-            Preconditions.checkArgument(queryParam.pageParamIsLastArg(), "?占位模式下分页，PageParam参数只能在最后一位！");
+            Preconditions.checkArgument(queryParam.pageParamIsLastArg(), "Use '?' delimiter, 'PageParam' must at last location !");
             pageSql = sql + LIMIT + "?, ?";
 
             Object[] newArgs = new Object[queryParam.getArgs().length + 1];
@@ -81,9 +95,14 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
             sqlParam.setArgs(newArgs);
         }
 
-        log.debug("生成的分页sql: [{}]", pageSql);
-
         sqlParam.setSql(pageSql);
+
+        log.debug("SQL statement(page) [{}]", sqlParam.getSql());
+        if (queryParam.isNamed()) {
+            log.debug("SQL arguments(page) [{}]", sqlParam.getParamMap());
+        } else {
+            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
+        }
 
         return sqlParam;
     }
@@ -111,8 +130,6 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
             sql = "SELECT COUNT(1) FROM (" + sql + ") AS tmp";
         }
 
-        log.debug("生成的count sql: [{}]", sql);
-
         SqlParam sqlParam = new SqlParam();
         if (!queryParam.isNamed()) {
             Object[] newArgs = new Object[queryParam.getArgs().length - 1];
@@ -122,6 +139,13 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
             sqlParam.setParamMap(queryParam.getParamMap());
         }
         sqlParam.setSql(sql);
+
+        log.debug("SQL statement(count) [{}]", sqlParam.getSql());
+        if (queryParam.isNamed()) {
+            log.debug("SQL arguments(count) [{}]", sqlParam.getParamMap());
+        } else {
+            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
+        }
 
         return sqlParam;
     }

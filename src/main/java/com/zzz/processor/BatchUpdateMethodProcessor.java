@@ -18,8 +18,8 @@ public class BatchUpdateMethodProcessor extends BaseMethodProcessor<BatchUpdate>
     public Object process() {
         QueryParam queryParam = new QueryParam(args, argsAnnotations);
 
-        Preconditions.checkArgument(queryParam.onlyOneArg(), "批量操作只允许传入一个参数！");
-        Preconditions.checkArgument(queryParam.firstArg() instanceof List, "批量操作只允许传入一个List参数！");
+        Preconditions.checkArgument(queryParam.onlyOneArg(), "Just support one argument !");
+        Preconditions.checkArgument(queryParam.firstArg() instanceof List, "Just support one 'List' argument !");
 
         if (annotation.named()) {
             List<Map<String, ?>> mapList = (List<Map<String, ?>>) queryParam.firstArg();

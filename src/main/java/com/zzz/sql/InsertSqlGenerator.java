@@ -14,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -33,38 +34,52 @@ public class InsertSqlGenerator extends BaseSqlGenerator<Save> {
 
     @Override
     public SqlParam generateSql() throws Exception {
+        SqlParam sqlParam = new SqlParam();
         if (!"".equals(annotation.value())) {
-            return SqlParam.of(annotation.value(), queryParam.getArgs(), queryParam.getParamMap());
+            boolean flag = annotation.value().toUpperCase().startsWith("INSERT");
+            Preconditions.checkArgument(flag, "This SQL [%s] may be not a INSERT SQL !", annotation.value());
+
+            sqlParam.setSql(annotation.value());
+            sqlParam.setArgs(queryParam.getArgs());
+            sqlParam.setParamMap(queryParam.getParamMap());
+        } else {
+            Preconditions.checkArgument(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
+
+            Map<String, Object> map = ReflectUtils.getColumnValue(queryParam.firstArg());
+            this.processIdColumn(queryParam.firstArg(), map);
+
+            String sql = INSERT + ReflectUtils.getTableName(queryParam.firstArg()) + " ";
+
+            List<String> propertyStrs = Lists.newArrayList();
+            List<String> markStrs = Lists.newArrayList();
+            map.keySet().forEach(k -> {
+                propertyStrs.add("`" + k + "`");
+                markStrs.add("?");
+            });
+
+            sql += "(" + Joiner.on(", ").join(propertyStrs) + ")";
+            sql += " VALUES ";
+            sql += "(" + Joiner.on(", ").join(markStrs) + ")";
+
+            Object[] newArgs = new Object[map.size()];
+            int i = 0;
+            for (String key : map.keySet()) {
+                newArgs[i] = map.get(key);
+                i++;
+            }
+
+            sqlParam.setSql(sql);
+            sqlParam.setArgs(newArgs);
         }
 
-        Preconditions.checkArgument(queryParam.onlyOneArg(), "在保存时，使用对象保存模式下，仅能传入一个参数！");
-
-        Map<String, Object> map = ReflectUtils.getColumnValue(queryParam.firstArg());
-        this.processIdColumn(queryParam.firstArg(), map);
-
-        String sql = INSERT + ReflectUtils.getTableName(queryParam.firstArg()) + " ";
-
-        List<String> propertyStrs = Lists.newArrayList();
-        List<String> markStrs = Lists.newArrayList();
-        map.keySet().forEach(k -> {
-            propertyStrs.add("`" + k + "`");
-            markStrs.add("?");
-        });
-
-        sql += "(" + Joiner.on(", ").join(propertyStrs) + ")";
-        sql += " VALUES ";
-        sql += "(" + Joiner.on(", ").join(markStrs) + ")";
-
-        log.debug("生成的sql语句为：[{}]", sql);
-
-        Object[] newArgs = new Object[map.size()];
-        int i = 0;
-        for (String key : map.keySet()) {
-            newArgs[i] = map.get(key);
-            i++;
+        log.debug("SQL statement [{}]", sqlParam.getSql());
+        if (queryParam.isNamed()) {
+            log.debug("SQL arguments [{}]", sqlParam.getParamMap());
+        } else {
+            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
         }
 
-        return SqlParam.of(sql, newArgs);
+        return sqlParam;
     }
 
     /**
@@ -87,7 +102,7 @@ public class InsertSqlGenerator extends BaseSqlGenerator<Save> {
             // 若主键不是自增的，则需要获取用户传入的值
             if (!generatedValueAnno.strategy().equals(GenerationType.IDENTITY)) {
                 Object idValue = field.get(arg);
-                Preconditions.checkArgument(idValue != null, "id生成策略非递增，需要传入id值！");
+                Preconditions.checkArgument(idValue != null, "Need id value !");
                 String columnName = field.getName();
                 Column columnAnno = field.getAnnotation(Column.class);
                 if (columnAnno != null && !"".equals(columnAnno.name())) {

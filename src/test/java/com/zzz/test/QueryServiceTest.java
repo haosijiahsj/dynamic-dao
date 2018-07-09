@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -116,7 +117,7 @@ public class QueryServiceTest {
         Map<String, Object> map = Maps.newHashMap();
         map.put("sex", 1);
         map.put("name", "%z%");
-        List<Map<String, Object>> list = service.query12(map, PageParam.of(2, 2));
+        List<Map<String, Object>> list = service.query12(map, PageParam.of(1, 20));
         log.info("{}条数据，{}", list.size(), list);
     }
 
@@ -150,7 +151,7 @@ public class QueryServiceTest {
 
     @Test
     public void query16Test() {
-        EntityPo entityPo = service.query16(1);
+        EntityPo entityPo = service.query16(80);
         log.info("{}", entityPo);
     }
 

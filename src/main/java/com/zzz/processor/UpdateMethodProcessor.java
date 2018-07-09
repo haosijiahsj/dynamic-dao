@@ -18,13 +18,8 @@ public class UpdateMethodProcessor extends BaseMethodProcessor<Update> {
         BaseSqlGenerator<Update> sqlGenerator = new UpdateSqlGenerator(method, annotation, queryParam);
         SqlParam sqlParam = sqlGenerator.generateSql();
 
-        // 在Update注解上传入了sql
-        if (!"".equals(annotation.value())) {
-            if (queryParam.isNamed()) {
-                return namedParameterJdbcTemplate.update(sqlParam.getSql(), sqlParam.getParamMap());
-            } else {
-                return jdbcTemplate.update(sqlParam.getSql(), sqlParam.getArgs());
-            }
+        if (queryParam.isNamed()) {
+            return namedParameterJdbcTemplate.update(sqlParam.getSql(), sqlParam.getParamMap());
         }
 
         return jdbcTemplate.update(sqlParam.getSql(), sqlParam.getArgs());

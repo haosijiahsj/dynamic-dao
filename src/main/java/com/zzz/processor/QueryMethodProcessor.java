@@ -28,42 +28,16 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         BaseSqlGenerator<Query> sqlGenerator = new SelectSqlGenerator(method, annotation, queryParam);
         SqlParam sqlParam = sqlGenerator.generateSql();
 
-        // 使用的是?占位符方式
-        if (!queryParam.isNamed()) {
-            // 分页查询
-            List<Map<String, Object>> list;
-            if (queryParam.isPageQuery()) {
-                SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql());
-                list = jdbcTemplate.queryForList(pageSqlParam.getSql(), pageSqlParam.getArgs());
-            } else {
-                list = jdbcTemplate.queryForList(sqlParam.getSql(), sqlParam.getArgs());
-            }
-
-            // 返回值是PageWrapper
-            if (queryParam.isPageQuery() && PageWrapper.class.equals(method.getReturnType())) {
-                SqlParam countSqlParam = sqlGenerator.generateCountSql(sqlParam.getSql());
-                return this.processPageQueryResult(countSqlParam, list, queryParam);
-            } else {
-                return this.processQueryResult(list);
-            }
-        }
-
-        // 使用的是命名占位符方式
-        List<Map<String, Object>> list;
-        if (queryParam.isPageQuery()) {
-            SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql());
-            list = namedParameterJdbcTemplate.queryForList(pageSqlParam.getSql(), pageSqlParam.getParamMap());
-        } else {
-            list = namedParameterJdbcTemplate.queryForList(sqlParam.getSql(), sqlParam.getParamMap());
-        }
+        // 查询数据库
+        List<Map<String, Object>> mapList = this.query(sqlParam, sqlGenerator, queryParam);
 
         // 返回值是PageWrapper
         if (queryParam.isPageQuery() && PageWrapper.class.equals(method.getReturnType())) {
             SqlParam countSqlParam = sqlGenerator.generateCountSql(sqlParam.getSql());
-            return this.processPageQueryResult(countSqlParam, list, queryParam);
-        } else {
-            return this.processQueryResult(list);
+            return this.processPageQueryResult(countSqlParam, queryParam, mapList);
         }
+
+        return this.processQueryResult(mapList);
     }
 
     /**
@@ -75,7 +49,33 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             return;
         }
         boolean check = List.class.equals(method.getReturnType()) || PageWrapper.class.equals(method.getReturnType());
-        Preconditions.checkArgument(check, String.format("查询返回值必须为List或者是PageWrapper或与entityClass相同，该查询返回值为：[%s]！", method.getReturnType().getName()));
+        Preconditions.checkArgument(check, String.format("Query return type must be 'List' or 'PageWrapper', this is [%s], not support !", method.getReturnType().getName()));
+    }
+
+    /**
+     * 查询方法
+     * @param sqlParam
+     * @param sqlGenerator
+     * @param queryParam
+     * @return
+     */
+    private List<Map<String, Object>> query(SqlParam sqlParam, BaseSqlGenerator sqlGenerator, QueryParam queryParam) {
+        // 具名参数
+        if (queryParam.isNamed()) {
+            if (queryParam.isPageQuery()) {
+                SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql());
+                return namedParameterJdbcTemplate.queryForList(pageSqlParam.getSql(), pageSqlParam.getParamMap());
+            }
+
+            return namedParameterJdbcTemplate.queryForList(sqlParam.getSql(), sqlParam.getParamMap());
+        }
+        // ?占位符
+        if (queryParam.isPageQuery()) {
+            SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql());
+            return jdbcTemplate.queryForList(pageSqlParam.getSql(), pageSqlParam.getArgs());
+        }
+
+        return jdbcTemplate.queryForList(sqlParam.getSql(), sqlParam.getArgs());
     }
 
     /**
@@ -86,23 +86,21 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * @throws Exception
      */
     private Object processQueryResult(List<Map<String, Object>> mapList) throws Exception {
-        if (CollectionUtils.isEmpty(mapList)) {
-            if (!Void.class.equals(annotation.entityClass()) && annotation.entityClass().equals(method.getReturnType())) {
-                return null;
-            }
-
-            return Collections.emptyList();
-        }
-        if (Void.class.equals(annotation.entityClass())) {
-            return mapList;
-        } else {
+        // 若指定返回的实体不是Void
+        if (!Void.class.equals(annotation.entityClass())) {
             if (annotation.entityClass().equals(method.getReturnType())) {
-                Preconditions.checkArgument(mapList.size() == 1, String.format("查询列表有%s条数据大于1条数据！", mapList.size()));
+                Preconditions.checkArgument(mapList.size() <= 1, String.format("Except one return value, actual %s !", mapList.size()));
+                if (mapList.isEmpty()) {
+                    return null;
+                }
+
                 return ReflectUtils.rowMapping(mapList, annotation.entityClass()).get(0);
             }
 
             return ReflectUtils.rowMapping(mapList, annotation.entityClass());
         }
+
+        return mapList;
     }
 
     /**
@@ -114,7 +112,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * @return
      * @throws Exception
      */
-    private Object processPageQueryResult(SqlParam countSqlParam, List<Map<String, Object>> mapList, QueryParam queryParam) throws Exception {
+    private Object processPageQueryResult(SqlParam countSqlParam, QueryParam queryParam, List<Map<String, Object>> mapList) throws Exception {
         PageParam pageParam = queryParam.getPageParam();
         // 查询总条数
         long totalRows = this.countQuery(countSqlParam, queryParam);
@@ -140,6 +138,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             List<Object> queryList = ReflectUtils.rowMapping(mapList, annotation.entityClass());
             pageWrapper.setContent((List<T>) queryList);
         }
+
         return pageWrapper;
     }
 

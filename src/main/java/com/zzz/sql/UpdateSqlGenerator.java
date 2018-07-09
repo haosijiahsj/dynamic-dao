@@ -1,6 +1,7 @@
 package com.zzz.sql;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.zzz.annotations.Update;
 import com.zzz.reflect.ReflectUtils;
@@ -8,6 +9,7 @@ import com.zzz.support.QueryParam;
 import com.zzz.support.SqlParam;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -27,42 +29,59 @@ public class UpdateSqlGenerator extends BaseSqlGenerator<Update> {
 
     @Override
     public SqlParam generateSql() {
+        SqlParam sqlParam = new SqlParam();
+
         if (!"".equals(annotation.value())) {
-            return SqlParam.of(annotation.value(), queryParam.getArgs(), queryParam.getParamMap());
+            boolean flag = annotation.value().toUpperCase().startsWith("UPDATE") || annotation.value().toUpperCase().startsWith("DELETE");
+            Preconditions.checkArgument(flag, "This SQL [%s] may be not a UPDATE or DELETE SQL !", annotation.value());
+
+            sqlParam.setSql(annotation.value());
+            sqlParam.setArgs(queryParam.getArgs());
+            sqlParam.setParamMap(queryParam.getParamMap());
+        } else {
+            Preconditions.checkArgument(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
+
+            String sql = UPDATE + ReflectUtils.getTableName(queryParam.firstArg()) + " SET ";
+
+            Map<String, Object> idMap = ReflectUtils.getIdValue(queryParam.firstArg());
+            Map<String, Object> columnMap = ReflectUtils.getColumnValue(queryParam.firstArg());
+
+            List<String> propertyStrs = Lists.newArrayList();
+            columnMap.keySet().forEach(k -> propertyStrs.add("`" + k + "` = ?"));
+
+            List<String> idStrs = Lists.newArrayList();
+            idMap.keySet().forEach(k -> idStrs.add("`" + k + "` = ?"));
+
+            sql += Joiner.on(", ").join(propertyStrs);
+            sql += " WHERE ";
+            sql += Joiner.on(", ").join(idStrs);
+
+            Object[] newArgs = new Object[idMap.size() + columnMap.size()];
+
+            int i = 0;
+            for (String key : columnMap.keySet()) {
+                newArgs[i] = columnMap.get(key);
+                i++;
+            }
+            for (String key : idMap.keySet()) {
+                newArgs[i] = idMap.get(key);
+                i++;
+            }
+
+            columnMap.putAll(idMap);
+
+            sqlParam.setSql(sql);
+            sqlParam.setArgs(newArgs);
         }
 
-        String sql = UPDATE + ReflectUtils.getTableName(queryParam.firstArg()) + " SET ";
-
-        Map<String, Object> idMap = ReflectUtils.getIdValue(queryParam.firstArg());
-        Map<String, Object> columnMap = ReflectUtils.getColumnValue(queryParam.firstArg());
-
-        List<String> propertyStrs = Lists.newArrayList();
-        columnMap.keySet().forEach(k -> propertyStrs.add("`" + k + "` = ?"));
-
-        List<String> idStrs = Lists.newArrayList();
-        idMap.keySet().forEach(k -> idStrs.add("`" + k + "` = ?"));
-
-        sql += Joiner.on(", ").join(propertyStrs);
-        sql += " WHERE ";
-        sql += Joiner.on(", ").join(idStrs);
-
-        log.debug("生成的sql语句为：[{}]", sql);
-
-        Object[] newArgs = new Object[idMap.size() + columnMap.size()];
-
-        int i = 0;
-        for (String key : columnMap.keySet()) {
-            newArgs[i] = columnMap.get(key);
-            i++;
-        }
-        for (String key : idMap.keySet()) {
-            newArgs[i] = idMap.get(key);
-            i++;
+        log.debug("SQL statement [{}]", sqlParam.getSql());
+        if (queryParam.isNamed()) {
+            log.debug("SQL arguments [{}]", sqlParam.getParamMap());
+        } else {
+            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
         }
 
-        columnMap.putAll(idMap);
-
-        return SqlParam.of(sql, newArgs, columnMap);
+        return sqlParam;
     }
 
 }
