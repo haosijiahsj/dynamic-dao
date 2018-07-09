@@ -2,14 +2,20 @@ package com.zzz.test;
 
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
+import com.zzz.dao.QueryDao;
 import com.zzz.model.EntityPo;
+import com.zzz.service.SaveService;
+import com.zzz.service.impl.QueryServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author 胡胜钧
@@ -47,6 +53,21 @@ public class ReflectTest {
         log.info("{}", String.class.isAssignableFrom(String.class));
         log.info("{}", Character.class.isAssignableFrom(Character.class));
         log.info("{}", Boolean.class.isAssignableFrom(Boolean.class));
+    }
+
+    @Test
+    public void test2() {
+        ParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
+        Method[] methods = SaveService.class.getMethods();
+        Arrays.stream(methods).forEach(m -> {
+            String[] strs = discoverer.getParameterNames(m);
+            if (strs == null) return;
+            StringBuilder stringBuilder = new StringBuilder();
+            for (String s : strs) {
+                stringBuilder.append(s).append(" ");
+            }
+            log.info("{}", stringBuilder.toString());
+        });
     }
 
 }

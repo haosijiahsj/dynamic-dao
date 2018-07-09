@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.zzz.model.EntityPo;
 import com.zzz.model.EntityVo;
+import com.zzz.model.Status;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 import com.zzz.service.QueryService;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author 胡胜钧
@@ -187,6 +189,36 @@ public class QueryServiceTest {
     public void query21Test() {
         PageWrapper<EntityPo> pageWrapper = service.query21(1,"%a%", PageParam.of(1, 100));
         log.info("{}", pageWrapper);
+    }
+
+    @Test
+    public void query22Test() {
+        Set<EntityPo> list = service.query22(Lists.newArrayList(100, 101));
+        log.info("{}", list);
+    }
+
+    @Test
+    public void query23Test() {
+        List<Integer> list = service.query23(Status.SUCCESS);
+        log.info("{}", list);
+    }
+
+    @Test
+    public void query24Test() {
+        Set<Integer> set = service.query24(Status.SUCCESS);
+        log.info("{}", set);
+    }
+
+    @Test
+    public void query25Test() {
+        Set<Integer> set = service.query25(Status.SUCCESS);
+        log.info("{}", set);
+    }
+
+    @Test
+    public void query26Test() {
+        Long i = service.query26(Status.SUCCESS);
+        log.info("{}", i);
     }
 
 }

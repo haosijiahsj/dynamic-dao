@@ -44,6 +44,7 @@ public class DynamicDaoInvocationHandler implements InvocationHandler {
 
             if (methodProcessor != null) {
                 methodProcessor.setAnnotation(methodAnnotation);
+                methodProcessor.setMethodAnnotations(methodAnnotations);
                 methodProcessor.setMethod(method);
                 methodProcessor.setArgs(args);
                 methodProcessor.setArgsAnnotations(method.getParameterAnnotations());

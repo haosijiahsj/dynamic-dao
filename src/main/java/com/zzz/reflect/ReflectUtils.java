@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
  * @date 7/1 0001.
  */
 @Slf4j
+@SuppressWarnings("unchecked")
 public class ReflectUtils {
 
     private ReflectUtils() {}
@@ -224,6 +225,5 @@ public class ReflectUtils {
 
         return objects;
     }
-
 
 }

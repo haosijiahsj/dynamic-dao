@@ -4,12 +4,15 @@ import com.zzz.annotations.Query;
 import com.zzz.annotations.query.Condition;
 import com.zzz.annotations.query.Conditions;
 import com.zzz.annotations.query.Param;
+import com.zzz.annotations.query.SingleColumn;
 import com.zzz.model.EntityPo;
+import com.zzz.model.Status;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author 胡胜钧
@@ -217,5 +220,25 @@ public interface QueryDao {
 
     @Query("SELECT * FROM entity e WHERE e.sex = ? AND e.name_ LIKE ?")
     PageWrapper<EntityPo> query20(Integer sex, String name, PageParam pageParam);
+
+    @Query(value = "SELECT * FROM entity e WHERE e.id IN (:ids)", entityClass = EntityPo.class)
+    Set<EntityPo> query21(@Param("ids") List<Integer> ids);
+
+    @SingleColumn
+    @Query(value = "SELECT id FROM entity e WHERE e.status_ = :status")
+    List<Integer> query23(@Param("status") String status);
+
+
+    @SingleColumn
+    @Query(value = "SELECT id FROM entity e WHERE e.status_ = :status")
+    Set<Integer> query24(@Param("status") String status);
+
+    @SingleColumn
+    @Query(value = "SELECT COUNT(1) FROM entity e WHERE e.status_ = :status")
+    Set<Integer> query25(@Param("status") String status);
+
+    @SingleColumn(returnFirst = true)
+    @Query(value = "SELECT id FROM entity e WHERE e.status_ = :status")
+    Long query26(@Param("status") String status);
 
 }

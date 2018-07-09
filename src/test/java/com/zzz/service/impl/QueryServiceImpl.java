@@ -4,6 +4,7 @@ import com.zzz.DynamicDao;
 import com.zzz.dao.QueryDao;
 import com.zzz.model.EntityPo;
 import com.zzz.model.EntityVo;
+import com.zzz.model.Status;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 import com.zzz.service.QueryService;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author 胡胜钧
@@ -130,6 +132,31 @@ public class QueryServiceImpl implements QueryService {
     @Override
     public PageWrapper<EntityPo> query21(Integer sex, String name, PageParam pageParam) {
         return dao.query20(sex, name, pageParam);
+    }
+
+    @Override
+    public Set<EntityPo> query22(List<Integer> ids) {
+        return dao.query21(ids);
+    }
+
+    @Override
+    public List<Integer> query23(Status status) {
+        return dao.query23(status.name());
+    }
+
+    @Override
+    public Set<Integer> query24(Status status) {
+        return dao.query24(status.name());
+    }
+
+    @Override
+    public Set<Integer> query25(Status status) {
+        return dao.query25(status.name());
+    }
+
+    @Override
+    public Long query26(Status status) {
+        return dao.query26(status.name());
     }
 
 }

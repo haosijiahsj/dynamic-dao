@@ -17,6 +17,7 @@ public abstract class BaseMethodProcessor<T extends Annotation> {
     protected static final Logger log = LoggerFactory.getLogger(BaseMethodProcessor.class);
 
     protected T annotation;
+    protected Annotation[] methodAnnotations;
     protected Method method;
     protected Object[] args;
     protected Annotation[][] argsAnnotations;
@@ -25,6 +26,10 @@ public abstract class BaseMethodProcessor<T extends Annotation> {
 
     public void setAnnotation(T annotation) {
         this.annotation = annotation;
+    }
+
+    public void setMethodAnnotations(Annotation[] methodAnnotations) {
+        this.methodAnnotations = methodAnnotations;
     }
 
     public void setMethod(Method method) {

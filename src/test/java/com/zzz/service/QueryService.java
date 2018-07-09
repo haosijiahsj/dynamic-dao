@@ -2,11 +2,13 @@ package com.zzz.service;
 
 import com.zzz.model.EntityPo;
 import com.zzz.model.EntityVo;
+import com.zzz.model.Status;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author 胡胜钧
@@ -57,5 +59,15 @@ public interface QueryService {
     PageWrapper<EntityVo> query20(String name, PageParam pageParam);
 
     PageWrapper<EntityPo> query21(Integer sex, String name, PageParam pageParam);
+
+    Set<EntityPo> query22(List<Integer> ids);
+
+    List<Integer> query23(Status status);
+
+    Set<Integer> query24(Status status);
+
+    Set<Integer> query25(Status status);
+
+    Long query26(Status success);
 
 }

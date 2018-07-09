@@ -2,6 +2,7 @@ package com.zzz.processor;
 
 import com.google.common.base.Preconditions;
 import com.zzz.annotations.Query;
+import com.zzz.annotations.query.SingleColumn;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 import com.zzz.reflect.ReflectUtils;
@@ -11,7 +12,9 @@ import com.zzz.support.QueryParam;
 import com.zzz.support.SqlParam;
 import com.zzz.utils.CollectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author 胡胜钧
@@ -48,8 +51,8 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         if (annotation.entityClass().equals(method.getReturnType())) {
             return;
         }
-        boolean check = List.class.equals(method.getReturnType()) || PageWrapper.class.equals(method.getReturnType());
-        Preconditions.checkArgument(check, String.format("Query return type must be 'List' or 'PageWrapper', this is [%s], not support !", method.getReturnType().getName()));
+        boolean check = List.class.equals(method.getReturnType()) || PageWrapper.class.equals(method.getReturnType()) || Set.class.equals(method.getReturnType());
+        //Preconditions.checkArgument(check, String.format("Query return type must be 'List' or 'PageWrapper' or 'Set', this is [%s], not support !", method.getReturnType().getName()));
     }
 
     /**
@@ -89,7 +92,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         // 若指定返回的实体不是Void
         if (!Void.class.equals(annotation.entityClass())) {
             if (annotation.entityClass().equals(method.getReturnType())) {
-                Preconditions.checkArgument(mapList.size() <= 1, String.format("Except one return value, actual %s !", mapList.size()));
+                Preconditions.checkArgument(mapList.size() <= 1, String.format("Except 1 return value, actual %s !", mapList.size()));
                 if (mapList.isEmpty()) {
                     return null;
                 }
@@ -97,7 +100,21 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
                 return ReflectUtils.rowMapping(mapList, annotation.entityClass()).get(0);
             }
 
-            return ReflectUtils.rowMapping(mapList, annotation.entityClass());
+            List<Object> results = ReflectUtils.rowMapping(mapList, annotation.entityClass());
+            if (Set.class.equals(method.getReturnType())) {
+                return new HashSet<>(results);
+            }
+
+            return results;
+        }
+
+        // 若方法上存在@SingleColumn注解
+        SingleColumn singleColumnAnno = this.getSingleColumnAnnotation();
+        if (singleColumnAnno != null) {
+            if (mapList.isEmpty()) {
+                return null;
+            }
+            return this.processSingleColumnResult(mapList, singleColumnAnno.returnFirst());
         }
 
         return mapList;
@@ -159,4 +176,47 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
 
         return totalRows == null ? 0L : totalRows;
     }
+
+    /**
+     * 是否存在@SingleColumn这个注解
+     * @return
+     */
+    private SingleColumn getSingleColumnAnnotation() {
+        for (Annotation annotation : methodAnnotations) {
+            if (SingleColumn.class.equals(annotation.annotationType())) {
+                return (SingleColumn) annotation;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 处理单列结果
+     * @param mapList
+     * @return
+     */
+    private Object processSingleColumnResult(List<Map<String, Object>> mapList, boolean returnFirst) {
+        List<Object> singleColumnList =  mapList.stream().map(m -> {
+            Preconditions.checkArgument(m.size() <= 1, String.format("Single column except 1 return value, actual %s", m.size()));
+            Optional<Object> o = m.values().stream().findFirst();
+            if (!o.isPresent()) {
+                return null;
+            }
+            return m.values().stream().findFirst().get();
+        }).collect(Collectors.toList());
+
+        // 若返回值是set
+        if (Set.class.equals(method.getReturnType())) {
+            return new HashSet<>(singleColumnList);
+        }
+
+        // 返回第一个元素
+        if (returnFirst) {
+            return singleColumnList.get(0);
+        }
+
+        return singleColumnList;
+    }
+
 }
