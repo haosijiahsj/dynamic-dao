@@ -51,8 +51,14 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         if (annotation.entityClass().equals(method.getReturnType())) {
             return;
         }
-        boolean check = List.class.equals(method.getReturnType()) || PageWrapper.class.equals(method.getReturnType()) || Set.class.equals(method.getReturnType());
-        //Preconditions.checkArgument(check, String.format("Query return type must be 'List' or 'PageWrapper' or 'Set', this is [%s], not support !", method.getReturnType().getName()));
+
+        SingleColumn singleColumnAnno = this.getSingleColumnAnnotation();
+        boolean check = List.class.equals(method.getReturnType())
+                || PageWrapper.class.equals(method.getReturnType())
+                || Set.class.equals(method.getReturnType())
+                || (singleColumnAnno != null && singleColumnAnno.returnFirst());
+
+        Preconditions.checkArgument(check, String.format("Query return type must be 'List' or 'PageWrapper' or 'Set', this is [%s], not support !", method.getReturnType().getName()));
     }
 
     /**
@@ -114,6 +120,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             if (mapList.isEmpty()) {
                 return null;
             }
+
             return this.processSingleColumnResult(mapList, singleColumnAnno.returnFirst());
         }
 

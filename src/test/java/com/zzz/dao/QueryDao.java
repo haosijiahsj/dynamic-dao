@@ -6,7 +6,6 @@ import com.zzz.annotations.query.Conditions;
 import com.zzz.annotations.query.Param;
 import com.zzz.annotations.query.SingleColumn;
 import com.zzz.model.EntityPo;
-import com.zzz.model.Status;
 import com.zzz.page.PageParam;
 import com.zzz.page.PageWrapper;
 
@@ -238,7 +237,7 @@ public interface QueryDao {
     Set<Integer> query25(@Param("status") String status);
 
     @SingleColumn(returnFirst = true)
-    @Query(value = "SELECT id FROM entity e WHERE e.status_ = :status")
+    @Query(value = "SELECT COUNT(1) FROM entity e WHERE e.status_ = :status")
     Long query26(@Param("status") String status);
 
 }
