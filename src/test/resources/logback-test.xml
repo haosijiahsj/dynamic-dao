@@ -41,7 +41,7 @@
 		<appender-ref ref="STDOUT" />
 	</root>
 
-	<logger name="com.zzz" level="DEBUG" />
+	<logger name="com.husj" level="DEBUG" />
 	<logger name="org.springframework.jdbc.datasource.DataSourceTransactionManager" level="DEBUG" />
 
 </configuration>

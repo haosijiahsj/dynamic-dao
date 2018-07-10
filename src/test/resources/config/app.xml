@@ -13,7 +13,7 @@
 	http://www.springframework.org/schema/tx
 	http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<context:component-scan base-package="com.zzz" />
+	<context:component-scan base-package="com.husj" />
 	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
 
 </beans>
