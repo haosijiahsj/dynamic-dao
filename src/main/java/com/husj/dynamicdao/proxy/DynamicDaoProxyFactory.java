@@ -1,4 +1,4 @@
-package com.husj.dynamicdao;
+package com.husj.dynamicdao.proxy;
 
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.Reflection;

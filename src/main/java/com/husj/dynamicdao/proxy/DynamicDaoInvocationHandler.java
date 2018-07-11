@@ -1,4 +1,4 @@
-package com.husj.dynamicdao;
+package com.husj.dynamicdao.proxy;
 
 import com.husj.dynamicdao.annotations.*;
 import com.husj.dynamicdao.processor.*;

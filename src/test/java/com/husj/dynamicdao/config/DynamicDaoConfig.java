@@ -21,9 +21,7 @@ public class DynamicDaoConfig {
 
     @Bean
     public AutoInjectDynamicDaoBean autoInjectDynamicDaoBean() {
-        AutoInjectDynamicDaoBean autoInjectDynamicDaoBean = new AutoInjectDynamicDaoBean();
-//        autoInjectDynamicDaoBean.setDaoPackage("com.husj.dao");
-        autoInjectDynamicDaoBean.setDataSource(dataSource);
+        AutoInjectDynamicDaoBean autoInjectDynamicDaoBean = new AutoInjectDynamicDaoBean(dataSource);
 
         log.info("dynamic dao配置！");
 
