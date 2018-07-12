@@ -66,7 +66,7 @@ public interface QueryService {
 
     Set<Integer> query24(Status status);
 
-    Set<Integer> query25(Status status);
+    List<Integer> query25(Status status);
 
     Long query26(Status success);
 

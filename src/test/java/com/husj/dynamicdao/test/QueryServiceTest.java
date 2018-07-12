@@ -210,7 +210,7 @@ public class QueryServiceTest {
 
     @Test
     public void query25Test() {
-        Set<Integer> set = service.query25(Status.SUCCESS);
+        List<Integer> set = service.query25(Status.SUCCESS);
         log.info("{}", set);
     }
 

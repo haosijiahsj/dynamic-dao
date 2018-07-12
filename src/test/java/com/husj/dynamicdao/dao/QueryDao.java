@@ -233,8 +233,8 @@ public interface QueryDao {
     Set<Integer> query24(@Param("status") String status);
 
     @SingleColumn
-    @Query(value = "SELECT COUNT(1) FROM entity e WHERE e.status_ = :status")
-    Set<Integer> query25(@Param("status") String status);
+    @Query(value = "SELECT id FROM entity e WHERE e.status_ = :status")
+    List<Integer> query25(@Param("status") String status);
 
     @SingleColumn(returnFirst = true)
     @Query(value = "SELECT COUNT(1) FROM entity e WHERE e.status_ = :status")

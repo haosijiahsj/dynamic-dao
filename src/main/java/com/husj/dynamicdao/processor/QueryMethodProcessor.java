@@ -117,10 +117,6 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         // 若方法上存在@SingleColumn注解
         SingleColumn singleColumnAnno = this.getSingleColumnAnnotation();
         if (singleColumnAnno != null) {
-            if (mapList.isEmpty()) {
-                return null;
-            }
-
             return this.processSingleColumnResult(mapList, singleColumnAnno.returnFirst());
         }
 
@@ -205,7 +201,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      */
     private Object processSingleColumnResult(List<Map<String, Object>> mapList, boolean returnFirst) {
         List<Object> singleColumnList =  mapList.stream().map(m -> {
-            Preconditions.checkArgument(m.size() <= 1, String.format("Single column except 1 return value, actual %s", m.size()));
+            Preconditions.checkArgument(m.size() <= 1, String.format("Single column except 1 column return value, actual %s", m.size()));
             Optional<Object> o = m.values().stream().findFirst();
             if (!o.isPresent()) {
                 return null;
@@ -220,6 +216,9 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
 
         // 返回第一个元素
         if (returnFirst) {
+            if (singleColumnList.isEmpty()) {
+                return null;
+            }
             return singleColumnList.get(0);
         }
 

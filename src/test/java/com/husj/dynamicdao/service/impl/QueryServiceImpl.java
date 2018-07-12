@@ -150,7 +150,7 @@ public class QueryServiceImpl implements QueryService {
     }
 
     @Override
-    public Set<Integer> query25(Status status) {
+    public List<Integer> query25(Status status) {
         return dao.query25(status.name());
     }
 
