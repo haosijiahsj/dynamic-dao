@@ -71,7 +71,7 @@ public class ReflectUtils {
                 field.setAccessible(false);
                 map.put(columnName, columnValue);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(String.format("获取字段[%s]的值时出现异常！", field.getName()), e);
+                throw new IllegalArgumentException(String.format("Can't get [%s] value !", field.getName()), e);
             }
         }
 
@@ -103,11 +103,11 @@ public class ReflectUtils {
                 field.setAccessible(false);
                 map.put(columnName, columnValue);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(String.format("获取字段[%s]的值时出现异常！", field.getName()), e);
+                throw new IllegalArgumentException(String.format("Can't get [%s] value !", field.getName()), e);
             }
         }
 
-        Preconditions.checkArgument(map.size() == 1, String.format("类[%s]没有或有多个id列！", arg.getClass().getName()));
+        Preconditions.checkArgument(map.size() == 1, String.format("Class [%s] allow only one 'id' column !", arg.getClass().getName()));
 
         return map;
     }
@@ -120,8 +120,9 @@ public class ReflectUtils {
     public static String getTableName(Object arg) {
         Entity entityAnno = arg.getClass().getAnnotation(Entity.class);
         Table tableAnno = arg.getClass().getAnnotation(Table.class);
-        Preconditions.checkArgument(entityAnno != null, String.format("类[%s]必须要有@Entity注解！", arg.getClass().getName()));
-        Preconditions.checkArgument(tableAnno != null, String.format("类[%s]必须要有@Table注解！", arg.getClass().getName()));
+
+        Preconditions.checkArgument(entityAnno != null, String.format("Class [%s] must have 'Entity' annotation !", arg.getClass().getName()));
+        Preconditions.checkArgument(tableAnno != null, String.format("Class [%s] must have 'Table' annotation !", arg.getClass().getName()));
 
         return "".equals(tableAnno.name()) ? arg.getClass().getSimpleName() : tableAnno.name();
     }
@@ -214,7 +215,7 @@ public class ReflectUtils {
                     Enum<?> enums = Enum.valueOf((Class<Enum>) fieldType, value.toString());
                     field.set(object, enums);
                 } else {
-                    log.warn("类型不匹配 column类型 :[{}] filed类型: [{}] , value: [{}]", columnType, fieldType, value);
+                    log.warn("Type doesn't match ! type of column:[{}], type of filed: [{}] , value: [{}]", columnType, fieldType, value);
                 }
 
                 field.setAccessible(false);
