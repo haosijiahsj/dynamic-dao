@@ -1,5 +1,6 @@
 package com.husj.dynamicdao;
 
+import com.google.common.base.Preconditions;
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.proxy.DynamicDaoProxyFactory;
 import lombok.Setter;
@@ -33,10 +34,10 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
     /**
      * 检查参数
      */
-    private void checkArgument() {
-        if (dataSource == null && jdbcTemplate == null) {
-            throw new IllegalArgumentException("You must initialize 'dataSource' or 'jdbcTemplate' in AutoInjectDynamicDaoBean !");
-        }
+    private void init() {
+        boolean check = dataSource == null && jdbcTemplate == null;
+        Preconditions.checkArgument(!check, "You must initialize 'dataSource' or 'jdbcTemplate' in AutoInjectDynamicDaoBean !");
+
         if (jdbcTemplate == null) {
             jdbcTemplate = new JdbcTemplate(dataSource);
         }
@@ -44,7 +45,7 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        this.checkArgument();
+        this.init();
 
         Field[] fields = bean.getClass().getDeclaredFields();
         if (fields == null || fields.length == 0) {
