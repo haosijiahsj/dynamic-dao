@@ -2,12 +2,16 @@ package com.husj.dynamicdao.test;
 
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
+import com.husj.dynamicdao.dao.QueryDao;
 import com.husj.dynamicdao.model.EntityPo;
 import com.husj.dynamicdao.service.SaveService;
+import com.husj.dynamicdao.service.impl.QueryServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.ResolvableType;
+import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -66,6 +70,13 @@ public class ReflectTest {
             }
             log.info("{}", stringBuilder.toString());
         });
+    }
+
+    @Test
+    public void resolveTest() {
+        ResolvableType resolvableType = ResolvableType.forMethodReturnType(QueryDao.class.getMethods()[0]);
+        Class<?> resolve = resolvableType.getGeneric(0).resolve();
+        System.out.println(resolve);
     }
 
 }
