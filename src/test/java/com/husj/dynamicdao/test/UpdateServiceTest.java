@@ -1,7 +1,5 @@
 package com.husj.dynamicdao.test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.husj.dynamicdao.model.EntityPo;
 import com.husj.dynamicdao.service.UpdateService;
 import com.husj.dynamicdao.utils.ServiceUtils;
@@ -9,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +64,7 @@ public class UpdateServiceTest {
 
     @Test
     public void delete2Test() {
-        int n = service.delete2(Lists.newArrayList(1, 2, 3));
+        int n = service.delete2(Arrays.asList(1, 2, 3));
         log.info("{}", n);
     }
 
@@ -74,22 +74,22 @@ public class UpdateServiceTest {
         Object[] obj2 = new Object[] {"b", 7};
         Object[] obj3 = new Object[] {"c", 8};
 
-        List<Object[]> objects = Lists.newArrayList(obj1, obj2, obj3);
+        List<Object[]> objects = Arrays.asList(obj1, obj2, obj3);
 
         service.batchUpdate1(objects);
     }
 
     @Test
     public void batchUpdate2() {
-        Map<String, Object> map1 = Maps.newHashMap();
+        Map<String, Object> map1 = new HashMap<>();
         map1.put("name", "e");
         map1.put("id", 6);
 
-        Map<String, Object> map2 = Maps.newHashMap();
+        Map<String, Object> map2 = new HashMap<>();
         map2.put("name", "f");
         map2.put("id", 7);
 
-        List<Map<String, Object>> objects = Lists.newArrayList(map1, map2);
+        List<Map<String, Object>> objects = Arrays.asList(map1, map2);
 
         service.batchUpdate2(objects);
     }

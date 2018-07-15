@@ -1,12 +1,12 @@
 package com.husj.dynamicdao.service.impl;
 
-import com.google.common.collect.Maps;
 import com.husj.dynamicdao.DynamicDao;
 import com.husj.dynamicdao.dao.SaveDao;
 import com.husj.dynamicdao.model.EntityPo;
 import com.husj.dynamicdao.service.SaveService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -31,7 +31,7 @@ public class SaveServiceImpl implements SaveService {
 
     @Override
     public int save3(String name, Integer sex, String tel, Boolean available) {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("sex", sex);
         map.put("tel", tel);
@@ -42,7 +42,7 @@ public class SaveServiceImpl implements SaveService {
 
     @Override
     public int save4(String name, Integer sex, String tel, Boolean available) {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("sex", sex);
         map.put("tel", tel);

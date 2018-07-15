@@ -1,14 +1,14 @@
 package com.husj.dynamicdao.sql;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.husj.dynamicdao.annotations.Update;
 import com.husj.dynamicdao.reflect.ReflectUtils;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
+import com.husj.dynamicdao.utils.StringUtils;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,28 +33,28 @@ public class UpdateSqlGenerator extends BaseSqlGenerator<Update> {
 
         if (!"".equals(annotation.value())) {
             boolean flag = annotation.value().toUpperCase().startsWith("UPDATE") || annotation.value().toUpperCase().startsWith("DELETE");
-            Preconditions.checkArgument(flag, "This SQL [%s] may be not a UPDATE or DELETE SQL !", annotation.value());
+            Assert.isTrue(flag, String.format("This SQL [%s] may be not a UPDATE or DELETE SQL !", annotation.value()));
 
             sqlParam.setSql(annotation.value());
             sqlParam.setArgs(queryParam.getArgs());
             sqlParam.setParamMap(queryParam.getParamMap());
         } else {
-            Preconditions.checkArgument(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
+            Assert.isTrue(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
 
             String sql = UPDATE + ReflectUtils.getTableName(queryParam.firstArg()) + " SET ";
 
             Map<String, Object> idMap = ReflectUtils.getIdValue(queryParam.firstArg());
             Map<String, Object> columnMap = ReflectUtils.getColumnValue(queryParam.firstArg());
 
-            List<String> propertyStrs = Lists.newArrayList();
+            List<String> propertyStrs = new ArrayList<>();
             columnMap.keySet().forEach(k -> propertyStrs.add("`" + k + "` = ?"));
 
-            List<String> idStrs = Lists.newArrayList();
+            List<String> idStrs = new ArrayList<>();
             idMap.keySet().forEach(k -> idStrs.add("`" + k + "` = ?"));
 
-            sql += Joiner.on(", ").join(propertyStrs);
+            sql += StringUtils.join(", ", propertyStrs);
             sql += " WHERE ";
-            sql += Joiner.on(", ").join(idStrs);
+            sql += StringUtils.join(", ", idStrs);
 
             Object[] newArgs = new Object[idMap.size() + columnMap.size()];
 

@@ -1,8 +1,6 @@
 package com.husj.dynamicdao.processor;
 
-import com.google.common.base.Preconditions;
 import com.husj.dynamicdao.annotations.Query;
-import com.husj.dynamicdao.annotations.query.SingleColumn;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.page.PageWrapper;
@@ -11,8 +9,10 @@ import com.husj.dynamicdao.sql.BaseSqlGenerator;
 import com.husj.dynamicdao.sql.SelectSqlGenerator;
 import com.husj.dynamicdao.support.SqlParam;
 import com.husj.dynamicdao.utils.CollectionUtils;
+import org.springframework.core.ResolvableType;
+import org.springframework.util.Assert;
+import org.springframework.util.NumberUtils;
 
-import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,7 +25,8 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
 
     @Override
     public Object process() throws Exception {
-        this.checkReturnType();
+        this.preCheck();
+
         // 查询参数
         QueryParam queryParam = new QueryParam(args, argsAnnotations);
         BaseSqlGenerator<Query> sqlGenerator = new SelectSqlGenerator(method, annotation, queryParam);
@@ -40,29 +41,23 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             return this.processPageQueryResult(countSqlParam, queryParam, mapList);
         }
 
+        // 普通返回值
         return this.processQueryResult(mapList);
     }
 
     /**
-     * 校验查询返回值
+     * 预检查
      */
-    private void checkReturnType() {
-        // 返回类型可以与目标类型相同
-        if (annotation.entityClass().equals(method.getReturnType())) {
-            return;
+    private void preCheck() {
+        // 查询方法不允许返回void
+        if (void.class.equals(method.getReturnType()) || Void.class.equals(method.getReturnType())) {
+            throw new IllegalArgumentException("Query can't return void type !");
         }
-
-        SingleColumn singleColumnAnno = this.getSingleColumnAnnotation();
-        boolean check = List.class.equals(method.getReturnType())
-                || PageWrapper.class.equals(method.getReturnType())
-                || Set.class.equals(method.getReturnType())
-                || (singleColumnAnno != null && singleColumnAnno.returnFirst());
-
-        Preconditions.checkArgument(check, String.format("Query return type must be 'List' or 'PageWrapper' or 'Set', this is [%s], not support !", method.getReturnType().getName()));
     }
 
     /**
      * 查询方法
+     *
      * @param sqlParam
      * @param sqlGenerator
      * @param queryParam
@@ -95,18 +90,40 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * @throws Exception
      */
     private Object processQueryResult(List<Map<String, Object>> mapList) throws Exception {
-        // 若指定返回的实体不是Void
-        if (!Void.class.equals(annotation.entityClass())) {
-            if (annotation.entityClass().equals(method.getReturnType())) {
-                Preconditions.checkArgument(mapList.size() <= 1, String.format("Except 1 return value, actual %s !", mapList.size()));
-                if (mapList.isEmpty()) {
-                    return null;
-                }
+        Class genericClass = Void.class;
+        ResolvableType resolvableType = ResolvableType.forMethodReturnType(method);
+        Class resolve = resolvableType.getGeneric(0).resolve();
 
-                return ReflectUtils.rowMapping(mapList, annotation.entityClass()).get(0);
+        // 若没有获取到泛型真实类型，说明返回值并不是泛型，Map为特例，泛型真实类型为Map，无需处理直接返回
+        if (resolve != null && !Map.class.equals(resolve) && !Map.class.equals(method.getReturnType())) {
+            genericClass = resolve;
+        }
+
+        // 返回值不是泛型则默认用户返回的是实体
+        if (resolve == null || Map.class.equals(method.getReturnType())) {
+            genericClass = method.getReturnType();
+        }
+
+        // 若返回的实体不是Void
+        if (!Void.class.equals(genericClass)) {
+            // 是否是支持的单列数据，支持的则返回单列数据如List<Long>, Long等
+            if (this.isSupportSingleColumnType(genericClass)) {
+                return this.processSingleColumnResult(mapList, genericClass);
             }
 
-            List<Object> results = ReflectUtils.rowMapping(mapList, annotation.entityClass());
+            // 返回的不是泛型List或者Set, 返回的是单个对象或者Map<String, Object>
+            if (genericClass.equals(method.getReturnType())) {
+                if (mapList.isEmpty()) {
+                    return Map.class.equals(genericClass) ? Collections.emptyMap() : null;
+                }
+
+                Assert.isTrue(mapList.size() <= 1, String.format("Except 1 row return value, actual %s !", mapList.size()));
+                // 返回第一行记录
+                return Map.class.equals(genericClass) ? mapList.get(0) : ReflectUtils.rowMapping(mapList, genericClass).get(0);
+            }
+
+            // mapList值封装到实体中
+            List<Object> results = ReflectUtils.rowMapping(mapList, genericClass);
             if (Set.class.equals(method.getReturnType())) {
                 return new HashSet<>(results);
             }
@@ -114,13 +131,72 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             return results;
         }
 
-        // 若方法上存在@SingleColumn注解
-        SingleColumn singleColumnAnno = this.getSingleColumnAnnotation();
-        if (singleColumnAnno != null) {
-            return this.processSingleColumnResult(mapList, singleColumnAnno.returnFirst());
+        // 返回List<Map<String, Object>>
+        return mapList;
+    }
+
+    /**
+     * 判断返回的数据类型是否支持
+     *
+     * @param requiredType
+     * @return
+     */
+    private boolean isSupportSingleColumnType(Class requiredType) {
+        // 泛型真实类型是String
+        if (String.class.equals(requiredType)) {
+            return true;
         }
 
-        return mapList;
+        // 泛型真实类型是数字类型
+        if (Number.class.isAssignableFrom(requiredType)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 处理单列结果
+     *
+     * @param mapList
+     * @return
+     */
+    private Object processSingleColumnResult(List<Map<String, Object>> mapList, Class requiredType) {
+        List<Object> singleColumnList =  mapList.stream().map(m -> {
+            Assert.isTrue(m.size() <= 1, String.format("Single column except 1 column return value, actual %s", m.size()));
+            Optional<Object> o = m.values().stream().findFirst();
+            if (!o.isPresent()) {
+                return null;
+            }
+            Object value = m.values().stream().findFirst().get();
+
+            // 支持返回String和数字类如Integer, Long
+            if (String.class.equals(requiredType)) {
+                return value.toString();
+            } else if (Number.class.isAssignableFrom(requiredType)) {
+                return value instanceof Number ? NumberUtils.convertNumberToTargetClass((Number) value, requiredType) :
+                        NumberUtils.parseNumber(value.toString(), requiredType);
+            }
+
+            throw new IllegalArgumentException("Value [" + value + "] is of type [" + value.getClass().getName() + "] and cannot be converted to required type [" + requiredType.getName() + "]");
+        }).collect(Collectors.toList());
+
+        // 若返回值是set
+        if (Set.class.equals(method.getReturnType())) {
+            return new HashSet<>(singleColumnList);
+        }
+
+        // 返回第一个元素
+        if (requiredType.equals(method.getReturnType())) {
+            if (singleColumnList.isEmpty()) {
+                return null;
+            }
+
+            Assert.isTrue(singleColumnList.size() <= 1, String.format("except 1 row, actual %s", singleColumnList.size()));
+            return singleColumnList.get(0);
+        }
+
+        return singleColumnList;
     }
 
     /**
@@ -152,11 +228,22 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             return pageWrapper;
         }
 
-        if (Void.class.equals(annotation.entityClass())) {
+        // 获取泛型真实类型
+        Class genericClass = Void.class;
+        ResolvableType resolvableType = ResolvableType.forMethodReturnType(method);
+        Class resolve = resolvableType.getGeneric(0).resolve();
+        if (resolve != null && !Map.class.equals(resolve)) {
+            genericClass = resolve;
+        }
+
+        if (Void.class.equals(genericClass)) {
             pageWrapper.setContent((List<T>) mapList);
         } else {
-            List<Object> queryList = ReflectUtils.rowMapping(mapList, annotation.entityClass());
-            pageWrapper.setContent((List<T>) queryList);
+            if (this.isSupportSingleColumnType(genericClass)) {
+                pageWrapper.setContent((List<T>) this.processSingleColumnResult(mapList, genericClass));
+            } else {
+                pageWrapper.setContent((List<T>) ReflectUtils.rowMapping(mapList, genericClass));
+            }
         }
 
         return pageWrapper;
@@ -172,57 +259,12 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
     private long countQuery(SqlParam sqlParam, QueryParam queryParam) {
         Long totalRows;
         if (queryParam.isNamed()) {
-            totalRows = namedParameterJdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getParamMap(), Long.class);
+            totalRows = namedParameterJdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getParamMap(), long.class);
         } else {
-            totalRows = jdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getArgs(), Long.class);
+            totalRows = jdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getArgs(), long.class);
         }
 
-        return totalRows == null ? 0L : totalRows;
-    }
-
-    /**
-     * 是否存在@SingleColumn这个注解
-     * @return
-     */
-    private SingleColumn getSingleColumnAnnotation() {
-        for (Annotation annotation : methodAnnotations) {
-            if (SingleColumn.class.equals(annotation.annotationType())) {
-                return (SingleColumn) annotation;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * 处理单列结果
-     * @param mapList
-     * @return
-     */
-    private Object processSingleColumnResult(List<Map<String, Object>> mapList, boolean returnFirst) {
-        List<Object> singleColumnList =  mapList.stream().map(m -> {
-            Preconditions.checkArgument(m.size() <= 1, String.format("Single column except 1 column return value, actual %s", m.size()));
-            Optional<Object> o = m.values().stream().findFirst();
-            if (!o.isPresent()) {
-                return null;
-            }
-            return m.values().stream().findFirst().get();
-        }).collect(Collectors.toList());
-
-        // 若返回值是set
-        if (Set.class.equals(method.getReturnType())) {
-            return new HashSet<>(singleColumnList);
-        }
-
-        // 返回第一个元素
-        if (returnFirst) {
-            if (singleColumnList.isEmpty()) {
-                return null;
-            }
-            return singleColumnList.get(0);
-        }
-
-        return singleColumnList;
+        return totalRows;
     }
 
 }

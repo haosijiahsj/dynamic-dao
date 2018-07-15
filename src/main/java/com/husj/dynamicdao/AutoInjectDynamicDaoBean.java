@@ -1,12 +1,12 @@
 package com.husj.dynamicdao;
 
-import com.google.common.base.Preconditions;
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.proxy.DynamicDaoProxyFactory;
 import lombok.Setter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
@@ -36,7 +36,7 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
      */
     private void init() {
         boolean check = dataSource == null && jdbcTemplate == null;
-        Preconditions.checkArgument(!check, "You must initialize 'dataSource' or 'jdbcTemplate' in AutoInjectDynamicDaoBean !");
+        Assert.isTrue(!check, "You must initialize 'dataSource' or 'jdbcTemplate' in AutoInjectDynamicDaoBean !");
 
         if (jdbcTemplate == null) {
             jdbcTemplate = new JdbcTemplate(dataSource);

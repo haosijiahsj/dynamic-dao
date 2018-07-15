@@ -1,19 +1,15 @@
 package com.husj.dynamicdao.sql;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.husj.dynamicdao.annotations.Query;
 import com.husj.dynamicdao.annotations.query.Condition;
 import com.husj.dynamicdao.annotations.query.Conditions;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import com.husj.dynamicdao.utils.StringUtils;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +41,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
     @Override
     public SqlParam generateSql() {
         boolean flag = annotation.value().toUpperCase().startsWith("SELECT");
-        Preconditions.checkArgument(flag, "This SQL [%s] may be not a SELECT SQL !", annotation.value());
+        Assert.isTrue(flag, String.format("This SQL [%s] may be not a SELECT SQL !", annotation.value()));
 
         String sql = annotation.value() + this.processConditions(method, queryParam.getParamMap());
 
@@ -76,7 +72,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
 
             pageSql = sql + LIMIT + ":" + offsetStr + ", :" + sizeStr;
 
-            Map<String, Object> map = Maps.newHashMap();
+            Map<String, Object> map = new HashMap<>();
             queryParam.getParamMap().keySet().forEach(m -> map.put(m, queryParam.getParamMap().get(m)));
 
             map.put(offsetStr, offset);
@@ -84,7 +80,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
 
             sqlParam.setParamMap(map);
         } else {
-            Preconditions.checkArgument(queryParam.pageParamIsLastArg(), "Use '?' delimiter, 'PageParam' must at last location !");
+            Assert.isTrue(queryParam.pageParamIsLastArg(), "Use '?' delimiter, 'PageParam' must at last location !");
             pageSql = sql + LIMIT + "?, ?";
 
             Object[] newArgs = new Object[queryParam.getArgs().length + 1];

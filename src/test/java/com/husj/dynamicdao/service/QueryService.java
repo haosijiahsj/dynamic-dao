@@ -70,4 +70,14 @@ public interface QueryService {
 
     Long query26(Status success);
 
+    List<EntityPo> query27(List<Integer> ids);
+
+    List<Integer> query28(List<Integer> ids);
+
+    Map<String, Object> query29(Integer id);
+
+    void query30(Integer id);
+
+    PageWrapper<Integer> query31(Integer sex, PageParam pageParam);
+
 }

@@ -159,4 +159,28 @@ public class QueryServiceImpl implements QueryService {
         return dao.query26(status.name());
     }
 
+    @Override
+    public List<EntityPo> query27(List<Integer> ids) {
+        return dao.query27(ids);
+    }
+
+    @Override
+    public List<Integer> query28(List<Integer> ids) {
+        return dao.query28(ids);
+    }
+
+    @Override
+    public Map<String, Object> query29(Integer id) {
+        return dao.query29(id);
+    }
+
+    @Override
+    public void query30(Integer id) {
+        dao.query30(id);
+    }
+
+    @Override
+    public PageWrapper<Integer> query31(Integer sex, PageParam pageParam) {
+        return dao.query31(sex, pageParam);
+    }
 }

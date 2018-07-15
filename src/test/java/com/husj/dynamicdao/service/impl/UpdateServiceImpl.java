@@ -1,12 +1,12 @@
 package com.husj.dynamicdao.service.impl;
 
-import com.google.common.collect.Maps;
 import com.husj.dynamicdao.DynamicDao;
 import com.husj.dynamicdao.dao.UpdateDao;
 import com.husj.dynamicdao.model.EntityPo;
 import com.husj.dynamicdao.service.UpdateService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,7 +27,7 @@ public class UpdateServiceImpl implements UpdateService {
 
     @Override
     public int update2(String name, String tel, Integer id) {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("tel", tel);
         map.put("id", id);

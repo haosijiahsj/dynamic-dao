@@ -1,9 +1,9 @@
 package com.husj.dynamicdao.page;
 
-import com.google.common.base.Preconditions;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.util.Assert;
 
 import java.io.Serializable;
 
@@ -21,8 +21,8 @@ public class PageParam implements Serializable {
     private int size;
 
     public static PageParam of(int page, int size) {
-        Preconditions.checkArgument(page > 0);
-        Preconditions.checkArgument(size > 0);
+        Assert.isTrue(page > 0, "'page' must greater than 0 !");
+        Assert.isTrue(size > 0, "'size' must greater than 0 !");
 
         return new PageParam(page, size);
     }

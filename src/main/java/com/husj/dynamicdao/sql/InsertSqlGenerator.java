@@ -1,12 +1,11 @@
 package com.husj.dynamicdao.sql;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.husj.dynamicdao.annotations.Save;
 import com.husj.dynamicdao.reflect.ReflectUtils;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
+import com.husj.dynamicdao.utils.StringUtils;
+import org.springframework.util.Assert;
 
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
@@ -14,6 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -37,29 +37,29 @@ public class InsertSqlGenerator extends BaseSqlGenerator<Save> {
         SqlParam sqlParam = new SqlParam();
         if (!"".equals(annotation.value())) {
             boolean flag = annotation.value().toUpperCase().startsWith("INSERT");
-            Preconditions.checkArgument(flag, "This SQL [%s] may be not a INSERT SQL !", annotation.value());
+            Assert.isTrue(flag, String.format("This SQL [%s] may be not a INSERT SQL !", annotation.value()));
 
             sqlParam.setSql(annotation.value());
             sqlParam.setArgs(queryParam.getArgs());
             sqlParam.setParamMap(queryParam.getParamMap());
         } else {
-            Preconditions.checkArgument(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
+            Assert.isTrue(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
 
             Map<String, Object> map = ReflectUtils.getColumnValue(queryParam.firstArg());
             this.processIdColumn(queryParam.firstArg(), map);
 
             String sql = INSERT + ReflectUtils.getTableName(queryParam.firstArg()) + " ";
 
-            List<String> propertyStrs = Lists.newArrayList();
-            List<String> markStrs = Lists.newArrayList();
+            List<String> propertyStrs = new ArrayList<>();
+            List<String> markStrs = new ArrayList<>();
             map.keySet().forEach(k -> {
                 propertyStrs.add("`" + k + "`");
                 markStrs.add("?");
             });
 
-            sql += "(" + Joiner.on(", ").join(propertyStrs) + ")";
+            sql += "(" + StringUtils.join(", ", propertyStrs) + ")";
             sql += " VALUES ";
-            sql += "(" + Joiner.on(", ").join(markStrs) + ")";
+            sql += "(" + StringUtils.join(", ", markStrs) + ")";
 
             Object[] newArgs = new Object[map.size()];
             int i = 0;
@@ -102,7 +102,7 @@ public class InsertSqlGenerator extends BaseSqlGenerator<Save> {
             // 若主键不是自增的，则需要获取用户传入的值
             if (!generatedValueAnno.strategy().equals(GenerationType.IDENTITY)) {
                 Object idValue = field.get(arg);
-                Preconditions.checkArgument(idValue != null, "Need id value !");
+                Assert.isTrue(idValue != null, "Need id value !");
                 String columnName = field.getName();
                 Column columnAnno = field.getAnnotation(Column.class);
                 if (columnAnno != null && !"".equals(columnAnno.name())) {

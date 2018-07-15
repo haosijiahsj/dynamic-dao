@@ -1,11 +1,11 @@
 package com.husj.dynamicdao.support;
 
-import com.google.common.collect.Maps;
 import com.husj.dynamicdao.annotations.query.Param;
 import com.husj.dynamicdao.page.PageParam;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -28,7 +28,7 @@ public class QueryParam {
         } else {
             this.args = args;
         }
-        this.paramMap = Maps.newHashMap();
+        this.paramMap = new HashMap<>();
         this.argsAnnotations = argsAnnotations;
         this.init();
     }

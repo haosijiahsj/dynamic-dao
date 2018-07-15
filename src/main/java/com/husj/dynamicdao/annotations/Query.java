@@ -11,5 +11,4 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Query {
     String value();
-    Class<?> entityClass() default Void.class;
 }

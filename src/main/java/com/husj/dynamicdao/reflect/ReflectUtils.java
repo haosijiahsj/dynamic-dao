@@ -1,10 +1,8 @@
 package com.husj.dynamicdao.reflect;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.husj.dynamicdao.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Assert;
 
 import javax.persistence.*;
 import java.lang.reflect.Field;
@@ -12,9 +10,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +30,7 @@ public class ReflectUtils {
      */
     public static Map<String, Object> getColumnValue(Object arg) {
         Field[] fields = arg.getClass().getDeclaredFields();
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         for (Field field : fields) {
             Id idAnno = field.getAnnotation(Id.class);
             // 不扫描@Id列
@@ -85,7 +81,7 @@ public class ReflectUtils {
      */
     public static Map<String, Object> getIdValue(Object arg) {
         Field[] fields = arg.getClass().getDeclaredFields();
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         for (Field field : fields) {
             Id idAnno = field.getAnnotation(Id.class);
             if (idAnno == null) {
@@ -107,7 +103,7 @@ public class ReflectUtils {
             }
         }
 
-        Preconditions.checkArgument(map.size() == 1, String.format("Class [%s] allow only one 'id' column !", arg.getClass().getName()));
+        Assert.isTrue(map.size() == 1, String.format("Class [%s] allow only one 'id' column !", arg.getClass().getName()));
 
         return map;
     }
@@ -121,8 +117,8 @@ public class ReflectUtils {
         Entity entityAnno = arg.getClass().getAnnotation(Entity.class);
         Table tableAnno = arg.getClass().getAnnotation(Table.class);
 
-        Preconditions.checkArgument(entityAnno != null, String.format("Class [%s] must have 'Entity' annotation !", arg.getClass().getName()));
-        Preconditions.checkArgument(tableAnno != null, String.format("Class [%s] must have 'Table' annotation !", arg.getClass().getName()));
+        Assert.isTrue(entityAnno != null, String.format("Class [%s] must have 'Entity' annotation !", arg.getClass().getName()));
+        Assert.isTrue(tableAnno != null, String.format("Class [%s] must have 'Table' annotation !", arg.getClass().getName()));
 
         return "".equals(tableAnno.name()) ? arg.getClass().getSimpleName() : tableAnno.name();
     }
@@ -137,14 +133,14 @@ public class ReflectUtils {
      */
     public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass) throws Exception {
         // 将查询结果key转换为大写
-        List<Map<String, Object>> resultList = mapList.stream().map(map -> {
-            Map<String, Object> resultMap = Maps.newHashMap();
-            map.keySet().forEach(k -> resultMap.put(k.toUpperCase(), map.get(k)));
+        List<Map<String, Object>> resultList = mapList.stream().map(m -> {
+            Map<String, Object> resultMap = new HashMap<>();
+            m.keySet().forEach(k -> resultMap.put(k.toUpperCase(), m.get(k)));
             return resultMap;
         }).collect(Collectors.toList());
 
         Field[] fields = targetClass.getDeclaredFields();
-        List<Object> objects = Lists.newArrayList();
+        List<Object> objects = new ArrayList<>();
 
         for (Map<String, Object> map : resultList) {
             Object object = targetClass.newInstance();

@@ -1,7 +1,5 @@
 package com.husj.dynamicdao.test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.husj.dynamicdao.model.EntityVo;
 import com.husj.dynamicdao.model.Status;
 import com.husj.dynamicdao.page.PageParam;
@@ -13,9 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author 胡胜钧
@@ -45,7 +41,7 @@ public class QueryServiceTest {
 
     @Test
     public void query3Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
 
         List<Map<String, Object>> list = service.query3(map);
@@ -54,7 +50,7 @@ public class QueryServiceTest {
 
     @Test
     public void query4Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
 
         List<EntityPo> list = service.query4(map);
@@ -63,7 +59,7 @@ public class QueryServiceTest {
 
     @Test
     public void query5Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
         map.put("name", "%a%");
 
@@ -73,7 +69,7 @@ public class QueryServiceTest {
 
     @Test
     public void query6Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
         map.put("name", "%a%");
 
@@ -115,7 +111,7 @@ public class QueryServiceTest {
 
     @Test
     public void query12Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
         map.put("name", "%z%");
         List<Map<String, Object>> list = service.query12(map, PageParam.of(1, 20));
@@ -124,7 +120,7 @@ public class QueryServiceTest {
 
     @Test
     public void query13Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
         map.put("name", "%z%");
         List<EntityPo> list = service.query13(map, PageParam.of(2, 2));
@@ -133,7 +129,7 @@ public class QueryServiceTest {
 
     @Test
     public void query14Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
         map.put("name", "%z%");
         PageWrapper<Map<String, Object>> pageWrapper = service.query14(map, PageParam.of(2, 2));
@@ -142,7 +138,7 @@ public class QueryServiceTest {
 
     @Test
     public void query15Test() {
-        Map<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("sex", 1);
         map.put("name", "%z%");
         map.put("dynamicDaoSize", 20);
@@ -152,7 +148,7 @@ public class QueryServiceTest {
 
     @Test
     public void query16Test() {
-        EntityPo entityPo = service.query16(80);
+        EntityPo entityPo = service.query16(100);
         log.info("{}", entityPo);
     }
 
@@ -174,7 +170,7 @@ public class QueryServiceTest {
 
     @Test
     public void query19Test() {
-        List<EntityPo> list = service.query19(Lists.newArrayList(5, 6));
+        List<EntityPo> list = service.query19(Arrays.asList(99, 100));
         log.info("{}", list);
     }
 
@@ -192,7 +188,7 @@ public class QueryServiceTest {
 
     @Test
     public void query22Test() {
-        Set<EntityPo> list = service.query22(Lists.newArrayList(100, 101));
+        Set<EntityPo> list = service.query22(Arrays.asList(100, 101));
         log.info("{}", list);
     }
 
@@ -218,6 +214,40 @@ public class QueryServiceTest {
     public void query26Test() {
         Long i = service.query26(Status.SUCCESS);
         log.info("{}", i);
+    }
+
+    @Test
+    public void query27Test() {
+        List<EntityPo> entityPos = service.query27(Arrays.asList(100, 101));
+        log.info("{}", entityPos);
+        log.info("{}", entityPos.get(0).getName());
+    }
+
+    @Test
+    public void query28Test() {
+        List<Integer> list = service.query28(Arrays.asList(100, 101));
+        log.info("{}", list);
+    }
+
+    @Test
+    public void query29Test() {
+        Map<String, Object> map = service.query29(100);
+        log.info("{}", map);
+    }
+
+    @Test
+    public void query30Test() {
+        try {
+            service.query30(100);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+    }
+
+    @Test
+    public void query31Test() {
+        PageWrapper<Integer> pageWrapper = service.query31(1, PageParam.of(1, 100));
+        log.info("{}", pageWrapper);
     }
 
 }

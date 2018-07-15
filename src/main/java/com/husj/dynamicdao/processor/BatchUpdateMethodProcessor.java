@@ -1,8 +1,8 @@
 package com.husj.dynamicdao.processor;
 
-import com.google.common.base.Preconditions;
 import com.husj.dynamicdao.annotations.BatchUpdate;
 import com.husj.dynamicdao.support.QueryParam;
+import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Map;
@@ -18,8 +18,8 @@ public class BatchUpdateMethodProcessor extends BaseMethodProcessor<BatchUpdate>
     public Object process() {
         QueryParam queryParam = new QueryParam(args, argsAnnotations);
 
-        Preconditions.checkArgument(queryParam.onlyOneArg(), "Just support one argument !");
-        Preconditions.checkArgument(queryParam.firstArg() instanceof List, "Just support one 'List' argument !");
+        Assert.isTrue(queryParam.onlyOneArg(), "Just support one argument !");
+        Assert.isTrue(queryParam.firstArg() instanceof List, "Just support one 'List' argument !");
 
         if (annotation.named()) {
             List<Map<String, ?>> mapList = (List<Map<String, ?>>) queryParam.firstArg();
