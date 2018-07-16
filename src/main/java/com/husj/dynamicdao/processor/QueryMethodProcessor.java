@@ -89,7 +89,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      *
      * @return
      */
-    private String getMappperIgnoreString() {
+    private String getMapperIgnoreString() {
         String ignoreString = "";
         for (Annotation methodAnnotation : methodAnnotations) {
             if (MapperIgnore.class == methodAnnotation.annotationType()) {
@@ -130,7 +130,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
                 return this.processSingleColumnResult(mapList, genericClass);
             }
 
-            String ignoreString = this.getMappperIgnoreString();
+            String ignoreString = this.getMapperIgnoreString();
             // 返回的不是泛型List或者Set, 返回的是单个对象或者Map<String, Object>
             if (genericClass.equals(method.getReturnType())) {
                 if (mapList.isEmpty()) {
@@ -262,7 +262,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             if (this.isSupportSingleColumnType(genericClass)) {
                 pageWrapper.setContent((List<T>) this.processSingleColumnResult(mapList, genericClass));
             } else {
-                pageWrapper.setContent((List<T>) ReflectUtils.rowMapping(mapList, genericClass, this.getMappperIgnoreString()));
+                pageWrapper.setContent((List<T>) ReflectUtils.rowMapping(mapList, genericClass, this.getMapperIgnoreString()));
             }
         }
 
