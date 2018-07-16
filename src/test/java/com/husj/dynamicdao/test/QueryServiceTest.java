@@ -250,4 +250,16 @@ public class QueryServiceTest {
         log.info("{}", pageWrapper);
     }
 
+    @Test
+    public void query32Test() {
+        EntityVo entityVo = service.query32(100);
+        log.info("{}", entityVo);
+    }
+
+    @Test
+    public void query33Test() {
+        List<EntityVo> entityVos = service.query33(Arrays.asList(100, 101, 102));
+        log.info("{}", entityVos);
+    }
+
 }

@@ -80,4 +80,8 @@ public interface QueryService {
 
     PageWrapper<Integer> query31(Integer sex, PageParam pageParam);
 
+    EntityVo query32(Integer id);
+
+    List<EntityVo> query33(List<Integer> ids);
+
 }

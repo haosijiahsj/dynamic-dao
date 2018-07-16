@@ -1,5 +1,6 @@
 package com.husj.dynamicdao.reflect;
 
+import com.husj.dynamicdao.utils.StringUtils;
 import com.husj.dynamicdao.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
@@ -221,6 +222,27 @@ public class ReflectUtils {
         }
 
         return objects;
+    }
+
+    /**
+     * mapList中key的ignoreString替换为""
+     * @param mapList
+     * @param targetClass
+     * @param ignoreString
+     * @return
+     * @throws Exception
+     */
+    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString) throws Exception {
+        // 不为空才进行替换
+        if (StringUtils.isNotEmpty(ignoreString)) {
+            mapList = mapList.stream().map(m -> {
+                Map<String, Object> resultMap = new HashMap<>();
+                m.keySet().forEach(k -> resultMap.put(k.replace(ignoreString, ""), m.get(k)));
+                return resultMap;
+            }).collect(Collectors.toList());
+        }
+
+        return rowMapping(mapList, targetClass);
     }
 
 }

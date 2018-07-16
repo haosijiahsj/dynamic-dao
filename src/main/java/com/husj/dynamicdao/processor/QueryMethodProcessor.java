@@ -1,6 +1,7 @@
 package com.husj.dynamicdao.processor;
 
 import com.husj.dynamicdao.annotations.Query;
+import com.husj.dynamicdao.annotations.query.MapperIgnore;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.page.PageWrapper;
@@ -13,6 +14,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 
+import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,6 +85,23 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
     }
 
     /**
+     * 有MapperIgnore注解
+     *
+     * @return
+     */
+    private String getMappperIgnoreString() {
+        String ignoreString = "";
+        for (Annotation methodAnnotation : methodAnnotations) {
+            if (MapperIgnore.class == methodAnnotation.annotationType()) {
+                ignoreString = ((MapperIgnore) methodAnnotation).value();
+                break;
+            }
+        }
+
+        return ignoreString;
+    }
+
+    /**
      * 处理普通查询情况
      *
      * @param mapList
@@ -111,6 +130,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
                 return this.processSingleColumnResult(mapList, genericClass);
             }
 
+            String ignoreString = this.getMappperIgnoreString();
             // 返回的不是泛型List或者Set, 返回的是单个对象或者Map<String, Object>
             if (genericClass.equals(method.getReturnType())) {
                 if (mapList.isEmpty()) {
@@ -119,11 +139,11 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
 
                 Assert.isTrue(mapList.size() <= 1, String.format("Except 1 row return value, actual %s !", mapList.size()));
                 // 返回第一行记录
-                return Map.class.equals(genericClass) ? mapList.get(0) : ReflectUtils.rowMapping(mapList, genericClass).get(0);
+                return Map.class.equals(genericClass) ? mapList.get(0) : ReflectUtils.rowMapping(mapList, genericClass, ignoreString).get(0);
             }
 
             // mapList值封装到实体中
-            List<Object> results = ReflectUtils.rowMapping(mapList, genericClass);
+            List<Object> results = ReflectUtils.rowMapping(mapList, genericClass, ignoreString);
             if (Set.class.equals(method.getReturnType())) {
                 return new HashSet<>(results);
             }
@@ -242,7 +262,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             if (this.isSupportSingleColumnType(genericClass)) {
                 pageWrapper.setContent((List<T>) this.processSingleColumnResult(mapList, genericClass));
             } else {
-                pageWrapper.setContent((List<T>) ReflectUtils.rowMapping(mapList, genericClass));
+                pageWrapper.setContent((List<T>) ReflectUtils.rowMapping(mapList, genericClass, this.getMappperIgnoreString()));
             }
         }
 

@@ -3,8 +3,10 @@ package com.husj.dynamicdao.dao;
 import com.husj.dynamicdao.annotations.Query;
 import com.husj.dynamicdao.annotations.query.Condition;
 import com.husj.dynamicdao.annotations.query.Conditions;
+import com.husj.dynamicdao.annotations.query.MapperIgnore;
 import com.husj.dynamicdao.annotations.query.Param;
 import com.husj.dynamicdao.model.EntityPo;
+import com.husj.dynamicdao.model.EntityVo;
 import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.page.PageWrapper;
 
@@ -248,5 +250,13 @@ public interface QueryDao {
 
     @Query("SELECT id FROM entity e WHERE e.sex = ?")
     PageWrapper<Integer> query31(Integer sex, PageParam pageParam);
+
+    @MapperIgnore
+    @Query("SELECT * FROM entity e WHERE e.id = ?")
+    EntityVo query32(Integer id);
+
+    @MapperIgnore
+    @Query("SELECT * FROM entity e WHERE e.id IN (:ids)")
+    List<EntityVo> query33(@Param("ids") List<Integer> ids);
 
 }

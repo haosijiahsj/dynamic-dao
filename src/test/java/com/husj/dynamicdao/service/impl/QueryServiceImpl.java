@@ -183,4 +183,15 @@ public class QueryServiceImpl implements QueryService {
     public PageWrapper<Integer> query31(Integer sex, PageParam pageParam) {
         return dao.query31(sex, pageParam);
     }
+
+    @Override
+    public EntityVo query32(Integer id) {
+        return dao.query32(id);
+    }
+
+    @Override
+    public List<EntityVo> query33(List<Integer> ids) {
+        return dao.query33(ids);
+    }
+
 }
