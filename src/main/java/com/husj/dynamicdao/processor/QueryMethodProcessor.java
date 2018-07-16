@@ -256,15 +256,15 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * @param queryParam
      * @return
      */
-    private long countQuery(SqlParam sqlParam, QueryParam queryParam) {
+    private Long countQuery(SqlParam sqlParam, QueryParam queryParam) {
         Long totalRows;
         if (queryParam.isNamed()) {
-            totalRows = namedParameterJdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getParamMap(), long.class);
+            totalRows = namedParameterJdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getParamMap(), Long.class);
         } else {
-            totalRows = jdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getArgs(), long.class);
+            totalRows = jdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getArgs(), Long.class);
         }
 
-        return totalRows;
+        return totalRows == null ? 0L : totalRows;
     }
 
 }
