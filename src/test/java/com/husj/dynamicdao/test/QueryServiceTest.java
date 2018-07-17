@@ -188,7 +188,7 @@ public class QueryServiceTest {
 
     @Test
     public void query22Test() {
-        Set<EntityPo> list = service.query22(Arrays.asList(100, 101));
+        Set<EntityPo> list = service.query22(Arrays.asList(80, 88));
         log.info("{}", list);
     }
 
@@ -258,7 +258,7 @@ public class QueryServiceTest {
 
     @Test
     public void query33Test() {
-        List<EntityVo> entityVos = service.query33(Arrays.asList(100, 101, 102));
+        List<EntityVo> entityVos = service.query33(Arrays.asList(72, 80, 88));
         log.info("{}", entityVos);
     }
 

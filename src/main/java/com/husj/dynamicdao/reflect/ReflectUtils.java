@@ -1,5 +1,6 @@
 package com.husj.dynamicdao.reflect;
 
+import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.utils.StringUtils;
 import com.husj.dynamicdao.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,7 @@ public class ReflectUtils {
                 field.setAccessible(false);
                 map.put(columnName, columnValue);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(String.format("Can't get [%s] value !", field.getName()), e);
+                throw new DynamicDaoException(String.format("Can't get [%s] value !", field.getName()), e);
             }
         }
 
@@ -100,7 +101,7 @@ public class ReflectUtils {
                 field.setAccessible(false);
                 map.put(columnName, columnValue);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(String.format("Can't get [%s] value !", field.getName()), e);
+                throw new DynamicDaoException(String.format("Can't get [%s] value !", field.getName()), e);
             }
         }
 
@@ -125,6 +126,72 @@ public class ReflectUtils {
     }
 
     /**
+     * 将object转换到需要的类型
+     * @param fieldType
+     * @param value
+     * @return
+     */
+    private static Object convertObject4Target(Class fieldType, Object value) {
+        Class columnType = value.getClass();
+        Object targetValue = value;
+        // 对象类型与列类型相同
+        if (fieldType.equals(columnType)) {
+            targetValue = value;
+        } else if (Byte.class.equals(fieldType) || byte.class.equals(fieldType)) {
+            targetValue = Byte.valueOf(value.toString());
+        } else if (Boolean.class.equals(columnType) || boolean.class.equals(columnType)) {
+            if (Boolean.class.equals(fieldType) || boolean.class.equals(fieldType)) {
+                targetValue = value;
+            } else {
+                if (Short.class.equals(fieldType) || short.class.equals(fieldType)) {
+                    targetValue = (Boolean) value ? (short) 1 : (short) 0;
+                } else {
+                    targetValue = (Boolean) value ? (byte) 1 : (byte) 0;
+                }
+            }
+        } else if (BigDecimal.class.equals(fieldType)) {
+            targetValue = new BigDecimal(value.toString());
+        } else if (Integer.class.equals(fieldType) || int.class.equals(fieldType)) {
+            targetValue = Integer.valueOf(value.toString());
+        } else if (Long.class.equals(fieldType) || long.class.equals(fieldType)) {
+            targetValue = Long.valueOf(value.toString());
+        } else if (Short.class.equals(fieldType) || short.class.equals(fieldType)) {
+            targetValue = Short.valueOf(value.toString());
+        } else if (Float.class.equals(fieldType) || float.class.equals(fieldType)) {
+            targetValue = Float.valueOf(value.toString());
+        } else if (Double.class.equals(fieldType) || double.class.equals(fieldType)) {
+            targetValue = Double.valueOf(value.toString());
+        } else if (Boolean.class.equals(fieldType) || boolean.class.equals(fieldType)) {
+            if (Boolean.class.equals(value) || boolean.class.equals(value)) {
+                targetValue = value;
+            } else {
+                targetValue = "1".equals(value.toString());
+            }
+        } else if (Timestamp.class.equals(columnType)) {
+            // 支持java8日期
+            if (LocalDateTime.class.equals(fieldType)) {
+                targetValue = TimeUtils.convertTimestamp2LocalDateTime((Timestamp) value);
+            } else {
+                targetValue = new Date(((Timestamp) value).getTime());
+            }
+        } else if (java.sql.Date.class.equals(columnType)) {
+            // 支持java8日期
+            if (LocalDate.class.equals(fieldType)) {
+                targetValue = TimeUtils.convertSqlDate2LocalDate((java.sql.Date) value);
+            } else {
+                targetValue = new Date(((java.sql.Date) value).getTime());
+            }
+        } else if (fieldType.isEnum()) {
+            // 支持枚举
+            targetValue = Enum.valueOf((Class<Enum>) fieldType, value.toString());
+        } else {
+            log.warn("Type doesn't match ! type of column: [{}], type of filed: [{}] , value: [{}]", columnType, fieldType, value);
+        }
+
+        return targetValue;
+    }
+
+    /**
      * 映射
      *
      * @param mapList
@@ -132,12 +199,17 @@ public class ReflectUtils {
      * @return
      * @throws Exception
      */
-    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass) throws Exception {
+    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass) {
         Field[] fields = targetClass.getDeclaredFields();
         List<Object> objects = new ArrayList<>();
 
         for (Map<String, Object> map : mapList) {
-            Object object = targetClass.newInstance();
+            Object object;
+            try {
+                object = targetClass.newInstance();
+            } catch (ReflectiveOperationException e) {
+                throw new DynamicDaoException(String.format("Can't instance class: [%s] !", targetClass.getName()), e);
+            }
             for (Field field : fields) {
                 String fieldName = field.getName();
                 Column columnAnno = field.getAnnotation(Column.class);
@@ -149,65 +221,12 @@ public class ReflectUtils {
                     continue;
                 }
 
-                Class<?> fieldType = field.getType();
-                Class<?> columnType = value.getClass();
-
                 field.setAccessible(true);
-                // 对象类型与列类型相同
-                if (fieldType.equals(columnType)) {
-                    field.set(object, value);
-                } else if (Byte.class.equals(fieldType) || byte.class.equals(fieldType)) {
-                    field.set(object, Byte.valueOf(value.toString()));
-                } else if (Boolean.class.equals(columnType) || boolean.class.equals(columnType)) {
-                    if (Boolean.class.equals(fieldType) || boolean.class.equals(fieldType)) {
-                        field.set(object, value);
-                    } else {
-                        if (Short.class.equals(fieldType) || short.class.equals(fieldType)) {
-                            field.set(object, (Boolean) value ? (short) 1 : (short) 0);
-                        } else {
-                            field.set(object, (Boolean) value ? (byte) 1 : (byte) 0);
-                        }
-                    }
-                } else if (BigDecimal.class.equals(fieldType)) {
-                    field.set(object, new BigDecimal(value.toString()));
-                } else if (Integer.class.equals(fieldType) || int.class.equals(fieldType)) {
-                    field.set(object, Integer.valueOf(value.toString()));
-                } else if (Long.class.equals(fieldType) || long.class.equals(fieldType)) {
-                    field.set(object, Long.valueOf(value.toString()));
-                } else if (Short.class.equals(fieldType) || short.class.equals(fieldType)) {
-                    field.set(object, Short.valueOf(value.toString()));
-                } else if (Float.class.equals(fieldType) || float.class.equals(fieldType)) {
-                    field.set(object, Float.valueOf(value.toString()));
-                } else if (Double.class.equals(fieldType) || double.class.equals(fieldType)) {
-                    field.set(object, Double.valueOf(value.toString()));
-                } else if (Boolean.class.equals(fieldType) || boolean.class.equals(fieldType)) {
-                    if (Boolean.class.equals(value) || boolean.class.equals(value)) {
-                        field.set(object, value);
-                    } else {
-                        field.set(object, "1".equals(value.toString()));
-                    }
-                } else if (Timestamp.class.equals(columnType)) {
-                    // 支持java8日期
-                    if (LocalDateTime.class.equals(fieldType)) {
-                        field.set(object, TimeUtils.convertTimestamp2LocalDateTime((Timestamp) value));
-                    } else {
-                        field.set(object, new Date(((Timestamp) value).getTime()));
-                    }
-                } else if (java.sql.Date.class.equals(columnType)) {
-                    // 支持java8日期
-                    if (LocalDate.class.equals(fieldType)) {
-                        field.set(object, TimeUtils.convertSqlDate2LocalDate((java.sql.Date) value));
-                    } else {
-                        field.set(object, new Date(((java.sql.Date) value).getTime()));
-                    }
-                } else if (fieldType.isEnum()) {
-                    // 支持枚举
-                    Enum<?> enums = Enum.valueOf((Class<Enum>) fieldType, value.toString());
-                    field.set(object, enums);
-                } else {
-                    log.warn("Type doesn't match ! type of column: [{}], type of filed: [{}] , value: [{}]", columnType, fieldType, value);
+                try {
+                    field.set(object, convertObject4Target(field.getType(), value));
+                } catch (IllegalAccessException e) {
+                    throw new DynamicDaoException(String.format("Can't set field: [%s] value !", field), e);
                 }
-
                 field.setAccessible(false);
             }
 
@@ -225,7 +244,7 @@ public class ReflectUtils {
      * @return
      * @throws Exception
      */
-    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString) throws Exception {
+    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString) {
         mapList = mapList.stream().map(m -> {
             Map<String, Object> resultMap = new HashMap<>();
             m.keySet().forEach(k -> {

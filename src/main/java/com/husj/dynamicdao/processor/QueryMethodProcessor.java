@@ -106,9 +106,8 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      *
      * @param mapList
      * @return
-     * @throws Exception
      */
-    private Object processQueryResult(List<Map<String, Object>> mapList) throws Exception {
+    private Object processQueryResult(List<Map<String, Object>> mapList) {
         Class genericClass = Void.class;
         ResolvableType resolvableType = ResolvableType.forMethodReturnType(method);
         Class resolve = resolvableType.getGeneric(0).resolve();
@@ -226,9 +225,8 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * @param mapList
      * @param queryParam
      * @return
-     * @throws Exception
      */
-    private Object processPageQueryResult(SqlParam countSqlParam, QueryParam queryParam, List<Map<String, Object>> mapList) throws Exception {
+    private Object processPageQueryResult(SqlParam countSqlParam, QueryParam queryParam, List<Map<String, Object>> mapList) {
         PageParam pageParam = queryParam.getPageParam();
         // 查询总条数
         long totalRows = this.countQuery(countSqlParam, queryParam);
