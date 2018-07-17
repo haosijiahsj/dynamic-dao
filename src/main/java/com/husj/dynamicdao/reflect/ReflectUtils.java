@@ -133,17 +133,10 @@ public class ReflectUtils {
      * @throws Exception
      */
     public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass) throws Exception {
-        // 将查询结果key转换为大写
-        List<Map<String, Object>> resultList = mapList.stream().map(m -> {
-            Map<String, Object> resultMap = new HashMap<>();
-            m.keySet().forEach(k -> resultMap.put(k.toUpperCase(), m.get(k)));
-            return resultMap;
-        }).collect(Collectors.toList());
-
         Field[] fields = targetClass.getDeclaredFields();
         List<Object> objects = new ArrayList<>();
 
-        for (Map<String, Object> map : resultList) {
+        for (Map<String, Object> map : mapList) {
             Object object = targetClass.newInstance();
             for (Field field : fields) {
                 String fieldName = field.getName();
@@ -212,7 +205,7 @@ public class ReflectUtils {
                     Enum<?> enums = Enum.valueOf((Class<Enum>) fieldType, value.toString());
                     field.set(object, enums);
                 } else {
-                    log.warn("Type doesn't match ! type of column:[{}], type of filed: [{}] , value: [{}]", columnType, fieldType, value);
+                    log.warn("Type doesn't match ! type of column: [{}], type of filed: [{}] , value: [{}]", columnType, fieldType, value);
                 }
 
                 field.setAccessible(false);
@@ -233,14 +226,18 @@ public class ReflectUtils {
      * @throws Exception
      */
     public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString) throws Exception {
-        // 不为空才进行替换
-        if (StringUtils.isNotEmpty(ignoreString)) {
-            mapList = mapList.stream().map(m -> {
-                Map<String, Object> resultMap = new HashMap<>();
-                m.keySet().forEach(k -> resultMap.put(k.replace(ignoreString, ""), m.get(k)));
-                return resultMap;
-            }).collect(Collectors.toList());
-        }
+        mapList = mapList.stream().map(m -> {
+            Map<String, Object> resultMap = new HashMap<>();
+            m.keySet().forEach(k -> {
+                // 将所有数据列名转换为大写
+                String key = k.toUpperCase();
+                // 不为空才进行替换
+                key = StringUtils.isNotEmpty(ignoreString) ? key.replace(ignoreString, "") : key;
+
+                resultMap.put(key, m.get(k));
+            });
+            return resultMap;
+        }).collect(Collectors.toList());
 
         return rowMapping(mapList, targetClass);
     }
