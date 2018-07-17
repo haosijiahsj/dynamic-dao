@@ -133,7 +133,7 @@ public class ReflectUtils {
      */
     private static Object convertObject4Target(Class fieldType, Object value) {
         Class columnType = value.getClass();
-        Object targetValue = value;
+        Object targetValue = null;
         // 对象类型与列类型相同
         if (fieldType.equals(columnType)) {
             targetValue = value;
@@ -221,9 +221,15 @@ public class ReflectUtils {
                     continue;
                 }
 
+                // 若map中该fieldName的值不为空，则转换成字段中需要的数据类型
+                Object targetValue = convertObject4Target(field.getType(), value);
+                if (targetValue == null) {
+                    continue;
+                }
+
                 field.setAccessible(true);
                 try {
-                    field.set(object, convertObject4Target(field.getType(), value));
+                    field.set(object, targetValue);
                 } catch (IllegalAccessException e) {
                     throw new DynamicDaoException(String.format("Can't set field: [%s] value !", field), e);
                 }
