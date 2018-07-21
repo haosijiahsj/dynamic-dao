@@ -21,7 +21,7 @@ public interface QueryExceptionDao {
     @Query("SELECT * FROM entity e")
     List<Enum> query3();
 
-    @Query("SELECT * FROM entity e WHERE e.id = 100")
+    @Query("SELECT * FROM entity e WHERE e.id = 123")
     Enum query4();
 
     @Query("SELECT * FROM entity e")
