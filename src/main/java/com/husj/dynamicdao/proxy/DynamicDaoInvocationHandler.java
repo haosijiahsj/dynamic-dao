@@ -38,6 +38,8 @@ public class DynamicDaoInvocationHandler implements InvocationHandler {
                 methodProcessor = new UpdateMethodProcessor();
             } else if (Query.class.equals(annotationType)) {
                 methodProcessor = new QueryMethodProcessor();
+            } else if (Get.class.equals(annotationType)) {
+                methodProcessor = new GetMethodProcessor();
             } else if (BatchUpdate.class.equals(annotationType)) {
                 methodProcessor = new BatchUpdateMethodProcessor();
             } else if (Execute.class.equals(annotationType)) {
