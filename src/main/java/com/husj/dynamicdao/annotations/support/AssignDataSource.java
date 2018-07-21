@@ -1,4 +1,4 @@
-package com.husj.dynamicdao.support;
+package com.husj.dynamicdao.annotations.support;
 
 import java.lang.annotation.*;
 
@@ -9,6 +9,6 @@ import java.lang.annotation.*;
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AccessDataSource {
+public @interface AssignDataSource {
     String value();
 }

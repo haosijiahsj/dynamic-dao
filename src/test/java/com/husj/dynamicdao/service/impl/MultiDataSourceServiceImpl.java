@@ -26,6 +26,9 @@ public class MultiDataSourceServiceImpl implements MultiDataSourceService {
     @InjectDao
     private QueryDao queryDao;
 
+    @InjectDao
+    private com.husj.dynamicdao.seconddao.QueryDao secondQueryDao;
+
     @Override
     public void multiDataSourceTest() {
         EntityPo entityPo = new EntityPo();
@@ -41,4 +44,10 @@ public class MultiDataSourceServiceImpl implements MultiDataSourceService {
         List<EntityPo> list = queryDao.query10();
         log.info("{}", list);
     }
+
+    @Override
+    public EntityPo getById(Long id) {
+        return secondQueryDao.getById(id);
+    }
+
 }

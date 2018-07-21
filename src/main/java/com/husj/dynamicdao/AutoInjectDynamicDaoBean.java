@@ -2,7 +2,7 @@ package com.husj.dynamicdao;
 
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.proxy.DynamicDaoProxyFactory;
-import com.husj.dynamicdao.support.AccessDataSource;
+import com.husj.dynamicdao.annotations.support.AssignDataSource;
 import com.husj.dynamicdao.support.MultiDataSourceScope;
 import com.husj.dynamicdao.utils.CollectionUtils;
 import lombok.Setter;
@@ -19,6 +19,7 @@ import java.util.Map;
  * @author 胡胜钧
  * @date 6/30 0030.
  */
+@Deprecated
 @Setter
 public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
 
@@ -76,9 +77,9 @@ public class AutoInjectDynamicDaoBean implements BeanPostProcessor {
             throw new IllegalArgumentException(String.format("Can't get '%s' package !", field.getType()));
         }
         // 通过注解中指定的数据源key名来获取数据源
-        AccessDataSource accessDataSourceAnno = field.getType().getAnnotation(AccessDataSource.class);
-        if (accessDataSourceAnno != null) {
-            String dataSourceName = accessDataSourceAnno.value();
+        AssignDataSource assignDataSourceAnno = field.getType().getAnnotation(AssignDataSource.class);
+        if (assignDataSourceAnno != null) {
+            String dataSourceName = assignDataSourceAnno.value();
             DataSource dataSource = dataSourceMap.get(dataSourceName);
             Assert.isTrue(dataSource != null, String.format("Can't find dataSource [%s] in '%s'", dataSourceName, field.getType()));
 

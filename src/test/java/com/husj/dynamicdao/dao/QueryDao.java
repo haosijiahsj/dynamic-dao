@@ -9,6 +9,7 @@ import com.husj.dynamicdao.model.EntityPo;
 import com.husj.dynamicdao.model.EntityVo;
 import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.page.PageWrapper;
+import com.husj.dynamicdao.annotations.support.AssignDataSource;
 
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.Set;
  * @author 胡胜钧
  * @date 7/4 0004.
  */
+@AssignDataSource("dataSourceOne")
 public interface QueryDao {
 
     /**

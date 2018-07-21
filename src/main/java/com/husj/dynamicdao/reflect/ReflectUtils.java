@@ -111,18 +111,63 @@ public class ReflectUtils {
     }
 
     /**
+     * 获取有@Id注解的字段
+     * @param clazz
+     * @return
+     */
+    private static Field getIdField(Class<?> clazz) {
+        for (Field field : clazz.getDeclaredFields()) {
+            Id idAnno = field.getAnnotation(Id.class);
+            if (idAnno != null) {
+                return field;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 获取id列名称
+     * @param clazz
+     * @return
+     */
+    public static String getIdName(Class<?> clazz) {
+        Field field = getIdField(clazz);
+        if (field == null) {
+            throw new DynamicDaoException(String.format("Can't find id field in [%s]!", clazz));
+        }
+
+        String idName = field.getName();
+        Column columnAnno = field.getAnnotation(Column.class);
+        if (columnAnno != null && !"".equals(columnAnno.name())) {
+            idName = columnAnno.name();
+        }
+
+        return idName;
+    }
+
+    /**
      * 获取表名
      * @param arg
      * @return
      */
     public static String getTableName(Object arg) {
-        Entity entityAnno = arg.getClass().getAnnotation(Entity.class);
-        Table tableAnno = arg.getClass().getAnnotation(Table.class);
+        return getTableName(arg.getClass());
+    }
 
-        Assert.isTrue(entityAnno != null, String.format("Class [%s] must have 'Entity' annotation !", arg.getClass().getName()));
-        Assert.isTrue(tableAnno != null, String.format("Class [%s] must have 'Table' annotation !", arg.getClass().getName()));
+    /**
+     * 获取表名
+     * @param clazz
+     * @return
+     */
+    public static String getTableName(Class<?> clazz) {
+        Entity entityAnno = clazz.getAnnotation(Entity.class);
+        Table tableAnno = clazz.getAnnotation(Table.class);
 
-        return "".equals(tableAnno.name()) ? arg.getClass().getSimpleName() : tableAnno.name();
+        Assert.isTrue(entityAnno != null, String.format("Class [%s] must have 'Entity' annotation !", clazz.getName()));
+        Assert.isTrue(tableAnno != null, String.format("Class [%s] must have 'Table' annotation !", clazz.getName()));
+
+        return "".equals(tableAnno.name()) ? clazz.getSimpleName() : tableAnno.name();
     }
 
     /**
