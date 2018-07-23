@@ -42,7 +42,7 @@ public class InjectDaoBeanPostProcessor implements BeanPostProcessor, Applicatio
                     // 没有该注解时使用默认的数据源
                     dataSource = applicationContext.getBean(DataSource.class);
                 } else {
-                    // 有该主键时使用注解中的value作为beanName到spring上下文中获取数据源（class级别多数据源支持）
+                    // 有该注解时使用注解中的value作为beanName到spring上下文中获取数据源（class级别多数据源支持）
                     dataSource = applicationContext.getBean(assignDataSourceAnno.value(), DataSource.class);
                 }
             } catch (Exception e) {
