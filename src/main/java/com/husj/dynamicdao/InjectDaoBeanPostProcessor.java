@@ -5,6 +5,7 @@ import com.husj.dynamicdao.proxy.DynamicDaoProxyFactory;
 import com.husj.dynamicdao.annotations.support.AssignDataSource;
 import com.husj.dynamicdao.utils.CollectionUtils;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
@@ -21,6 +22,7 @@ import java.util.Map;
  * @date 6/30 0030.
  *
  */
+@Slf4j
 public class InjectDaoBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
 
     @Setter
@@ -41,9 +43,11 @@ public class InjectDaoBeanPostProcessor implements BeanPostProcessor, Applicatio
                 if (assignDataSourceAnno == null) {
                     // 没有该注解时使用默认的数据源
                     dataSource = applicationContext.getBean(DataSource.class);
+                    log.debug("[{}] use default dateSource !", field.getType());
                 } else {
                     // 有该注解时使用注解中的value作为beanName到spring上下文中获取数据源（class级别多数据源支持）
                     dataSource = applicationContext.getBean(assignDataSourceAnno.value(), DataSource.class);
+                    log.debug("[{}] use dateSource name [{}]!", field.getType(), assignDataSourceAnno.value());
                 }
             } catch (Exception e) {
                 throw new DynamicDaoException("Can't get dataSource from spring context ! need define 'dataSource' as a bean !", e);
