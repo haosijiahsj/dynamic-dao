@@ -12,7 +12,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author 胡胜钧
@@ -61,12 +60,7 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
             return ps;
         }, keyHolder);
 
-        long key = Objects.requireNonNull(keyHolder.getKey()).longValue();
-        if (Integer.class.equals(method.getReturnType()) || int.class.equals(method.getReturnType())) {
-            return Integer.valueOf(String.valueOf(key));
-        }
-
-        return key;
+        return this.convertNumber2OtherType(keyHolder.getKey());
     }
 
     /**
@@ -78,9 +72,25 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
     private Object namedUpdateForReturnKey(String sql, Map<String, Object> paramMap) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(paramMap), keyHolder);
-        long key = Objects.requireNonNull(keyHolder.getKey()).longValue();
-        if (Integer.class.equals(method.getReturnType()) || int.class.equals(method.getReturnType())) {
-            return Integer.valueOf(String.valueOf(key));
+
+        return this.convertNumber2OtherType(keyHolder.getKey());
+    }
+
+    /**
+     * 将返回的主键转换到需要的类型
+     * 仅支持 短整型，整型，长整型，字符串类型
+     * @param key
+     * @return
+     */
+    private Object convertNumber2OtherType(Number key) {
+        if (Short.class.equals(method.getReturnType()) || short.class.equals(method.getReturnType())) {
+            return key.shortValue();
+        } else if (Integer.class.equals(method.getReturnType()) || int.class.equals(method.getReturnType())) {
+            return key.intValue();
+        } else if (Long.class.equals(method.getReturnType()) || long.class.equals(method.getReturnType())) {
+            return key.longValue();
+        } else if (String.class.equals(method.getReturnType())) {
+            return key.toString();
         }
 
         return key;

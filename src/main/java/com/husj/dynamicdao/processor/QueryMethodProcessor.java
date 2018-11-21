@@ -282,7 +282,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             totalRows = jdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getArgs(), Long.class);
         }
 
-        return totalRows == null ? 0L : totalRows;
+        return totalRows;
     }
 
 }
