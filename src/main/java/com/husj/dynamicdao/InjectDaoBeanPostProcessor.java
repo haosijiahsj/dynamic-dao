@@ -15,6 +15,7 @@ import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 
 /**
@@ -93,13 +94,16 @@ public class InjectDaoBeanPostProcessor implements BeanPostProcessor, Applicatio
             JdbcTemplate jdbcTemplate = this.getJdbcTemplate(field);
             Object dynamicDao = DynamicDaoProxyFactory.create(field.getType(), jdbcTemplate);
 
-            field.setAccessible(true);
+            if ((!Modifier.isPublic(field.getModifiers()) ||
+                    !Modifier.isPublic(field.getDeclaringClass().getModifiers()) ||
+                    Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
+                field.setAccessible(true);
+            }
             try {
                 field.set(bean, dynamicDao);
             } catch (IllegalAccessException e) {
                 throw new DynamicDaoException("Dynamic dao can't be injected !", e);
             }
-            field.setAccessible(false);
         }
 
         return bean;
