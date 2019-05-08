@@ -3,6 +3,7 @@ package com.husj.dynamicdao;
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.proxy.DynamicDaoProxyFactory;
 import com.husj.dynamicdao.annotations.support.AssignDataSource;
+import com.husj.dynamicdao.support.InjectDaoConfiguration;
 import com.husj.dynamicdao.utils.CollectionUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +17,6 @@ import org.springframework.util.Assert;
 import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Map;
 
 /**
  * @author 胡胜钧
@@ -27,8 +27,17 @@ import java.util.Map;
 public class InjectDaoBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
 
     @Setter
-    private Map<String, DataSource> dataSourceMap;
+    private InjectDaoConfiguration configuration;
     private ApplicationContext applicationContext;
+
+    public InjectDaoBeanPostProcessor() {
+        configuration = InjectDaoConfiguration.builder().build();
+    }
+
+    public InjectDaoBeanPostProcessor(InjectDaoConfiguration configuration) {
+        Assert.isTrue(configuration != null, "Configuration Can't Be Null !");
+        this.configuration = configuration;
+    }
 
     /**
      * 获取jdbcTemplate，根据数据源的不同来获取
@@ -36,14 +45,20 @@ public class InjectDaoBeanPostProcessor implements BeanPostProcessor, Applicatio
      * @return
      */
     private JdbcTemplate getJdbcTemplate(Field field) {
-        // 单个数据源
-        if (CollectionUtils.isEmpty(dataSourceMap)) {
+        // 若dataSourceMap为空则表示为单个数据源
+        if (CollectionUtils.isEmpty(configuration.getDataSourceMap())) {
             AssignDataSource assignDataSourceAnno = field.getType().getAnnotation(AssignDataSource.class);
             DataSource dataSource;
             try {
                 if (assignDataSourceAnno == null) {
                     // 没有该注解时使用默认的数据源
-                    dataSource = applicationContext.getBean(DataSource.class);
+                    if (configuration.getDataSource() != null) {
+                        // 若指定了数据源
+                        dataSource = configuration.getDataSource();
+                    } else {
+                        // 没有指定数据源则从spring容器中拿
+                        dataSource = applicationContext.getBean(DataSource.class);
+                    }
                     log.debug("[{}] use default dateSource !", field.getType());
                 } else {
                     // 有该注解时使用注解中的value作为beanName到spring上下文中获取数据源（class级别多数据源支持）
@@ -61,7 +76,7 @@ public class InjectDaoBeanPostProcessor implements BeanPostProcessor, Applicatio
         Package daoPackage = field.getType().getPackage();
         if (daoPackage != null) {
             String packageName = daoPackage.getName();
-            DataSource dataSource = dataSourceMap.get(packageName);
+            DataSource dataSource = configuration.getDataSourceMap().get(packageName);
             Assert.isTrue(dataSource != null, String.format("Can't find dataSource by '%s'", packageName));
 
             return new JdbcTemplate(dataSource);
@@ -92,7 +107,7 @@ public class InjectDaoBeanPostProcessor implements BeanPostProcessor, Applicatio
 
             // 生成代理
             JdbcTemplate jdbcTemplate = this.getJdbcTemplate(field);
-            Object dynamicDao = DynamicDaoProxyFactory.create(field.getType(), jdbcTemplate);
+            Object dynamicDao = DynamicDaoProxyFactory.create(field.getType(), jdbcTemplate, configuration);
 
             if ((!Modifier.isPublic(field.getModifiers()) ||
                     !Modifier.isPublic(field.getDeclaringClass().getModifiers()) ||

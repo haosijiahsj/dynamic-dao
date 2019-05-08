@@ -90,7 +90,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * @return
      */
     private String getMapperIgnoreString() {
-        String ignoreString = "";
+        String ignoreString = configuration.getIgnoreString();
         for (Annotation methodAnnotation : methodAnnotations) {
             if (MapperIgnore.class == methodAnnotation.annotationType()) {
                 ignoreString = ((MapperIgnore) methodAnnotation).value();
@@ -138,11 +138,12 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
 
                 Assert.isTrue(mapList.size() <= 1, String.format("Except 1 row return value, actual %s !", mapList.size()));
                 // 返回第一行记录
-                return Map.class.equals(genericClass) ? mapList.get(0) : ReflectUtils.rowMapping(mapList, genericClass, ignoreString).get(0);
+                return Map.class.equals(genericClass) ? mapList.get(0)
+                        : ReflectUtils.rowMapping(mapList, genericClass, ignoreString, configuration.isIgnoreCase()).get(0);
             }
 
             // mapList值封装到实体中
-            List<Object> results = ReflectUtils.rowMapping(mapList, genericClass, ignoreString);
+            List<Object> results = ReflectUtils.rowMapping(mapList, genericClass, ignoreString, configuration.isIgnoreCase());
             if (Set.class.equals(method.getReturnType())) {
                 return new HashSet<>(results);
             }
@@ -260,7 +261,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
             if (this.isSupportSingleColumnType(genericClass)) {
                 pageWrapper.setContent((List<T>) this.processSingleColumnResult(mapList, genericClass));
             } else {
-                pageWrapper.setContent((List<T>) ReflectUtils.rowMapping(mapList, genericClass, this.getMapperIgnoreString()));
+                pageWrapper.setContent((List<T>) ReflectUtils.rowMapping(mapList, genericClass, this.getMapperIgnoreString(), configuration.isIgnoreCase()));
             }
         }
 

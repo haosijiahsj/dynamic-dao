@@ -218,7 +218,7 @@ public class QueryServiceTest {
 
     @Test
     public void query27Test() {
-        List<EntityPo> entityPos = service.query27(Arrays.asList(100, 101));
+        List<EntityPo> entityPos = service.query27(Arrays.asList(80, 81));
         log.info("{}", entityPos);
         log.info("{}", entityPos.get(0).getName());
     }

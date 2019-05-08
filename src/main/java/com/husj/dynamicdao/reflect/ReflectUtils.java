@@ -244,7 +244,7 @@ public class ReflectUtils {
      * @return
      * @throws Exception
      */
-    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass) {
+    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, boolean ignoreCase) {
         Field[] fields = targetClass.getDeclaredFields();
         List<Object> objects = new ArrayList<>();
 
@@ -261,7 +261,7 @@ public class ReflectUtils {
                 if (columnAnno != null && !"".equals(columnAnno.name())) {
                     fieldName = columnAnno.name();
                 }
-                Object value = map.get(fieldName.toUpperCase());
+                Object value = map.get(ignoreCase ? fieldName.toUpperCase() : fieldName);
                 if (value == null) {
                     continue;
                 }
@@ -295,12 +295,12 @@ public class ReflectUtils {
      * @return
      * @throws Exception
      */
-    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString) {
+    public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString, boolean ignoreCase) {
         mapList = mapList.stream().map(m -> {
             Map<String, Object> resultMap = new HashMap<>();
             m.keySet().forEach(k -> {
                 // 将所有数据列名转换为大写
-                String key = k.toUpperCase();
+                String key = ignoreCase ? k.toUpperCase() : k;
                 // 不为空才进行替换
                 key = StringUtils.isNotEmpty(ignoreString) ? key.replace(ignoreString, "") : key;
 
@@ -309,7 +309,7 @@ public class ReflectUtils {
             return resultMap;
         }).collect(Collectors.toList());
 
-        return rowMapping(mapList, targetClass);
+        return rowMapping(mapList, targetClass, ignoreCase);
     }
 
 }

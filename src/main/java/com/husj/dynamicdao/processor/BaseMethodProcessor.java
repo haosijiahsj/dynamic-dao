@@ -1,5 +1,6 @@
 package com.husj.dynamicdao.processor;
 
+import com.husj.dynamicdao.support.InjectDaoConfiguration;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ public abstract class BaseMethodProcessor<T extends Annotation> {
     protected Annotation[][] argsAnnotations;
     protected JdbcTemplate jdbcTemplate;
     protected NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    protected InjectDaoConfiguration configuration;
 
     public abstract Object process() throws Exception;
 

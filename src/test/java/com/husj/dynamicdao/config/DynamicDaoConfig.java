@@ -1,6 +1,7 @@
 package com.husj.dynamicdao.config;
 
 import com.husj.dynamicdao.InjectDaoBeanPostProcessor;
+import com.husj.dynamicdao.support.InjectDaoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,22 +25,6 @@ public class DynamicDaoConfig {
     @Autowired
     @Qualifier("dataSourceTwo")
     private DataSource dataSourceTwo;
-
-//    @Bean
-//    public AutoInjectDynamicDaoBean autoInjectDynamicDaoBean() {
-//        AutoInjectDynamicDaoBean autoInjectDynamicDaoBean = new AutoInjectDynamicDaoBean();
-//        autoInjectDynamicDaoBean.setDataSource(dataSourceOne);
-//
-//        Map<String, DataSource> dataSourceMap = new HashMap<>();
-//        dataSourceMap.put("com.husj.dynamicdao.dao", dataSourceOne);
-//        dataSourceMap.put("com.husj.dynamicdao.seconddao", dataSourceTwo);
-//        autoInjectDynamicDaoBean.setDataSourceMap(dataSourceMap);
-//        autoInjectDynamicDaoBean.setScope(MultiDataSourceScope.PACKAGE);
-//
-//        log.info("dynamic dao配置！");
-//
-//        return autoInjectDynamicDaoBean;
-//    }
 
     @Bean
     public InjectDaoBeanPostProcessor injectDaoBean() {

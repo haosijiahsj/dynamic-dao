@@ -3,6 +3,7 @@ package com.husj.dynamicdao.proxy;
 import com.husj.dynamicdao.annotations.*;
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.processor.*;
+import com.husj.dynamicdao.support.InjectDaoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -20,9 +21,11 @@ import java.lang.reflect.Method;
 public class DynamicDaoInvocationHandler implements InvocationHandler {
 
     private JdbcTemplate jdbcTemplate;
+    private InjectDaoConfiguration configuration;
 
-    public DynamicDaoInvocationHandler(JdbcTemplate jdbcTemplate) {
+    public DynamicDaoInvocationHandler(JdbcTemplate jdbcTemplate, InjectDaoConfiguration configuration) {
         this.jdbcTemplate = jdbcTemplate;
+        this.configuration = configuration;
     }
 
     @Override
@@ -54,6 +57,7 @@ public class DynamicDaoInvocationHandler implements InvocationHandler {
                 methodProcessor.setArgsAnnotations(method.getParameterAnnotations());
                 methodProcessor.setJdbcTemplate(jdbcTemplate);
                 methodProcessor.setNamedParameterJdbcTemplate(new NamedParameterJdbcTemplate(jdbcTemplate));
+                methodProcessor.setConfiguration(configuration);
 
                 long begin = System.currentTimeMillis();
                 Object methodReturnValue = methodProcessor.process();

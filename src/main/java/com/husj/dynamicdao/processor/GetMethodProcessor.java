@@ -32,7 +32,7 @@ public class GetMethodProcessor extends BaseMethodProcessor<Get> {
 
         Assert.isTrue(mapList.size() == 1, "Get query return more than 1 return value !");
 
-        return ReflectUtils.rowMapping(mapList, method.getReturnType()).get(0);
+        return ReflectUtils.rowMapping(mapList, method.getReturnType(), configuration.isIgnoreCase()).get(0);
     }
 
 }
