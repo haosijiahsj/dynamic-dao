@@ -170,7 +170,7 @@ public class QueryServiceTest {
 
     @Test
     public void query19Test() {
-        List<EntityPo> list = service.query19(Arrays.asList(99, 100));
+        List<EntityPo> list = service.query19(Arrays.asList(72, 80, 88));
         log.info("{}", list);
     }
 

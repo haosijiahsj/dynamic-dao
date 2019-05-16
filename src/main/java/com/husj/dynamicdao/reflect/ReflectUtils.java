@@ -1,6 +1,8 @@
 package com.husj.dynamicdao.reflect;
 
+import com.husj.dynamicdao.annotations.support.Convert;
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
+import com.husj.dynamicdao.support.AttributeConverter;
 import com.husj.dynamicdao.utils.StringUtils;
 import com.husj.dynamicdao.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -49,15 +51,16 @@ public class ReflectUtils {
                 field.setAccessible(true);
                 Object columnValue = field.get(arg);
                 if (columnValue != null) {
-                    // 处理枚举情况
-                    if (field.getType().isEnum()) {
+                    // 处理转换器注解
+                    Convert convertAnno = field.getAnnotation(Convert.class);
+                    Enumerated enumeratedAnno = field.getAnnotation(Enumerated.class);
+                    if (convertAnno != null) {
+                        Class converter = convertAnno.converter();
+                        AttributeConverter attributeConverter = (AttributeConverter) converter.newInstance();
+                        columnValue = attributeConverter.convertToDatabaseColumn(columnValue);
+                    } else if (enumeratedAnno != null && field.getType().isEnum()) {
                         Enum enumValue = (Enum) columnValue;
-                        Enumerated enumeratedAnno = field.getAnnotation(Enumerated.class);
-                        if (enumeratedAnno != null) {
-                            columnValue = EnumType.STRING.equals(enumeratedAnno.value()) ? enumValue.name() : enumValue.ordinal();
-                        } else {
-                            columnValue = enumValue.name();
-                        }
+                        columnValue = EnumType.STRING.equals(enumeratedAnno.value()) ? enumValue.name() : enumValue.ordinal();
                     } else if (LocalDateTime.class.equals(field.getType())) {
                         columnValue = TimeUtils.convertLocalDateTime2Timestamp((LocalDateTime) columnValue);
                     } else if (LocalDate.class.equals(field.getType())) {
@@ -68,7 +71,7 @@ public class ReflectUtils {
                 }
                 field.setAccessible(false);
                 map.put(columnName, columnValue);
-            } catch (IllegalAccessException e) {
+            } catch (IllegalAccessException | InstantiationException e) {
                 throw new DynamicDaoException(String.format("Can't get [%s] value !", field.getName()), e);
             }
         }
@@ -266,8 +269,26 @@ public class ReflectUtils {
                     continue;
                 }
 
-                // 若map中该fieldName的值不为空，则转换成字段中需要的数据类型
-                Object targetValue = convertObject4Target(field.getType(), value);
+                Object targetValue;
+                Convert convertAnno = field.getAnnotation(Convert.class);
+                Enumerated enumeratedAnno = field.getAnnotation(Enumerated.class);
+                if (convertAnno != null) {
+                    // 处理Convert注解
+                    Class converter = convertAnno.converter();
+                    try {
+                        AttributeConverter attributeConverter = (AttributeConverter) converter.newInstance();
+                        targetValue = attributeConverter.convertToEntityAttribute(value);
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new DynamicDaoException("Convert column to entity error!", e);
+                    }
+                } else if (enumeratedAnno != null && field.getType().isEnum()) {
+                    // 处理枚举，仅在有Enumerated注解才进行处理
+                    targetValue = Enum.valueOf((Class<Enum>) field.getType(), value.toString());
+                } else {
+                    // 若map中该fieldName的值不为空，则转换成字段中需要的数据类型
+                    targetValue = convertObject4Target(field.getType(), value);
+                }
+
                 if (targetValue == null) {
                     continue;
                 }
@@ -297,7 +318,7 @@ public class ReflectUtils {
      */
     public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString, boolean ignoreCase) {
         mapList = mapList.stream().map(m -> {
-            Map<String, Object> resultMap = new HashMap<>();
+            Map<String, Object> resultMap = new HashMap<>(m.size());
             m.keySet().forEach(k -> {
                 // 将所有数据列名转换为大写
                 String key = ignoreCase ? k.toUpperCase() : k;
