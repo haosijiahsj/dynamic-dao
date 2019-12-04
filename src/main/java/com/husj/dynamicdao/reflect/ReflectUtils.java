@@ -4,14 +4,14 @@ import com.husj.dynamicdao.annotations.support.Convert;
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.support.AttributeConverter;
 import com.husj.dynamicdao.utils.StringUtils;
-import com.husj.dynamicdao.utils.TimeUtils;
+import com.husj.dynamicdao.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
+import com.husj.dynamicdao.utils.NumberUtils;
 
 import javax.persistence.*;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -62,11 +62,11 @@ public class ReflectUtils {
                         Enum enumValue = (Enum) columnValue;
                         columnValue = EnumType.STRING.equals(enumeratedAnno.value()) ? enumValue.name() : enumValue.ordinal();
                     } else if (LocalDateTime.class.equals(field.getType())) {
-                        columnValue = TimeUtils.convertLocalDateTime2Timestamp((LocalDateTime) columnValue);
+                        columnValue = DateTimeUtils.convertLocalDateTime2Timestamp((LocalDateTime) columnValue);
                     } else if (LocalDate.class.equals(field.getType())) {
-                        columnValue = TimeUtils.convertLocalDate2SqlDate((LocalDate) columnValue);
+                        columnValue = DateTimeUtils.convertLocalDate2SqlDate((LocalDate) columnValue);
                     } else if (Date.class.equals(field.getType())) {
-                        columnValue = TimeUtils.convertDate2Timestamp((Date) columnValue);
+                        columnValue = DateTimeUtils.convertDate2Timestamp((Date) columnValue);
                     }
                 }
                 field.setAccessible(false);
@@ -174,66 +174,59 @@ public class ReflectUtils {
     }
 
     /**
-     * 将object转换到需要的类型
-     * @param fieldType
+     * 转换列值到对应类型
+     * @param targetClass
      * @param value
      * @return
      */
-    private static Object convertObject4Target(Class fieldType, Object value) {
-        Class columnType = value.getClass();
+    public static Object convertObjectToTarget(Class targetClass, Object value) {
+        Class srcClass = value.getClass();
+
+        // 字段类型与列类型相同时直接返回
+        if (targetClass.equals(srcClass)) {
+            return value;
+        }
+
+        // 字段类型为字符串类型
+        String strValue = value.toString();
+        if (String.class.equals(targetClass)) {
+            return strValue;
+        }
+
+        // 字段类型为数字类型
+        if (NumberUtils.isNumberType(targetClass)) {
+            return NumberUtils.parseNumber(strValue, targetClass);
+        }
+
+        // 字段类型为日期类型
+        if (DateTimeUtils.isDateType(targetClass)) {
+            return DateTimeUtils.convertDateToTargetType((Date) value, targetClass);
+        }
+
+        // 字段类型为枚举类型
+        if (targetClass.isEnum()) {
+            return Enum.valueOf((Class<Enum>) targetClass, strValue);
+        }
+
         Object targetValue = null;
-        // 对象类型与列类型相同
-        if (fieldType.equals(columnType)) {
-            targetValue = value;
-        } else if (Byte.class.equals(fieldType) || byte.class.equals(fieldType)) {
-            targetValue = Byte.valueOf(value.toString());
-        } else if (Boolean.class.equals(columnType) || boolean.class.equals(columnType)) {
-            if (Boolean.class.equals(fieldType) || boolean.class.equals(fieldType)) {
-                targetValue = value;
+        // 字段类型为bool类型
+        if (Boolean.class.equals(targetClass) || boolean.class.equals(targetClass)) {
+            if (Arrays.asList(Boolean.TRUE.toString(), Boolean.FALSE.toString()).contains(strValue.toLowerCase())) {
+                targetValue = Boolean.parseBoolean(strValue);
             } else {
-                if (Short.class.equals(fieldType) || short.class.equals(fieldType)) {
-                    targetValue = (Boolean) value ? (short) 1 : (short) 0;
-                } else {
-                    targetValue = (Boolean) value ? (byte) 1 : (byte) 0;
+                if (!Arrays.asList(BigInteger.ONE.toString(), BigInteger.ZERO.toString()).contains(strValue)) {
+                    throw new DynamicDaoException(String.format("Can't convert column value to 'boolean', 'value: %s' is not [true, false or 0, 1] !", value));
                 }
+                // 此处大于0的所有都将会转换为true
+                targetValue = BigInteger.ONE.toString().equals(strValue);
             }
-        } else if (BigDecimal.class.equals(fieldType)) {
-            targetValue = new BigDecimal(value.toString());
-        } else if (Integer.class.equals(fieldType) || int.class.equals(fieldType)) {
-            targetValue = Integer.valueOf(value.toString());
-        } else if (Long.class.equals(fieldType) || long.class.equals(fieldType)) {
-            targetValue = Long.valueOf(value.toString());
-        } else if (Short.class.equals(fieldType) || short.class.equals(fieldType)) {
-            targetValue = Short.valueOf(value.toString());
-        } else if (Float.class.equals(fieldType) || float.class.equals(fieldType)) {
-            targetValue = Float.valueOf(value.toString());
-        } else if (Double.class.equals(fieldType) || double.class.equals(fieldType)) {
-            targetValue = Double.valueOf(value.toString());
-        } else if (Boolean.class.equals(fieldType) || boolean.class.equals(fieldType)) {
-            if (Boolean.class.equals(value) || boolean.class.equals(value)) {
-                targetValue = value;
-            } else {
-                targetValue = "1".equals(value.toString());
+        }
+        // 字段类型为char类型
+        else if (Character.class.equals(targetClass) || char.class.equals(targetClass)) {
+            if (strValue.length() > 1) {
+                throw new DynamicDaoException(String.format("Can't convert column value to 'char', 'value: %s' is to long !", value));
             }
-        } else if (Timestamp.class.equals(columnType)) {
-            // 支持java8日期
-            if (LocalDateTime.class.equals(fieldType)) {
-                targetValue = TimeUtils.convertTimestamp2LocalDateTime((Timestamp) value);
-            } else {
-                targetValue = new Date(((Timestamp) value).getTime());
-            }
-        } else if (java.sql.Date.class.equals(columnType)) {
-            // 支持java8日期
-            if (LocalDate.class.equals(fieldType)) {
-                targetValue = TimeUtils.convertSqlDate2LocalDate((java.sql.Date) value);
-            } else {
-                targetValue = new Date(((java.sql.Date) value).getTime());
-            }
-        } else if (fieldType.isEnum()) {
-            // 支持枚举
-            targetValue = Enum.valueOf((Class<Enum>) fieldType, value.toString());
-        } else {
-            log.warn("Type doesn't match ! type of column: [{}], type of filed: [{}] , value: [{}]", columnType, fieldType, value);
+            targetValue = strValue.charAt(0);
         }
 
         return targetValue;
@@ -245,7 +238,6 @@ public class ReflectUtils {
      * @param mapList
      * @param targetClass
      * @return
-     * @throws Exception
      */
     public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, boolean ignoreCase) {
         Field[] fields = targetClass.getDeclaredFields();
@@ -286,7 +278,7 @@ public class ReflectUtils {
                     targetValue = Enum.valueOf((Class<Enum>) field.getType(), value.toString());
                 } else {
                     // 若map中该fieldName的值不为空，则转换成字段中需要的数据类型
-                    targetValue = convertObject4Target(field.getType(), value);
+                    targetValue = convertObjectToTarget(field.getType(), value);
                 }
 
                 if (targetValue == null) {

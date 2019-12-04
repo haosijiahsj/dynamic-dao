@@ -93,7 +93,7 @@ public class InjectDaoBeanPostProcessor implements BeanPostProcessor, Applicatio
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Field[] fields = bean.getClass().getDeclaredFields();
-        if (fields == null || fields.length == 0) {
+        if (fields.length == 0) {
             return bean;
         }
 
