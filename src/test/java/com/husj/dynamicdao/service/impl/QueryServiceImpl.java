@@ -8,6 +8,7 @@ import com.husj.dynamicdao.model.Status;
 import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.page.PageWrapper;
 import com.husj.dynamicdao.service.QueryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Set;
 public class QueryServiceImpl implements QueryService {
 
     @DynamicDao
+//    @Autowired
     private QueryDao dao;
 
     @Override

@@ -17,7 +17,7 @@ public class EntityPo {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @Column(name = "name_")
     private String name;

@@ -67,16 +67,13 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
         String pageSql;
         SqlParam sqlParam = new SqlParam();
         if (queryParam.isNamed()) {
-            String offsetStr = this.generateLimitStr(OFFSET, queryParam.getParamMap().keySet());
-            String sizeStr = this.generateLimitStr(SIZE, queryParam.getParamMap().keySet());
+            pageSql = sql + LIMIT + COLON + OFFSET + ", " + COLON + SIZE;
 
-            pageSql = sql + LIMIT + ":" + offsetStr + ", :" + sizeStr;
+            Map<String, Object> map = new HashMap<>(queryParam.getParamMap().size());
+            queryParam.getParamMap().forEach(map::put);
 
-            Map<String, Object> map = new HashMap<>();
-            queryParam.getParamMap().keySet().forEach(m -> map.put(m, queryParam.getParamMap().get(m)));
-
-            map.put(offsetStr, offset);
-            map.put(sizeStr, queryParam.getPageParam().getSize());
+            map.put(OFFSET, offset);
+            map.put(SIZE, queryParam.getPageParam().getSize());
 
             sqlParam.setParamMap(map);
         } else {
@@ -197,6 +194,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
      * @param length
      * @return
      */
+    @Deprecated
     private String generateRandomStr(int length) {
         StringBuilder sb = new StringBuilder();
         Random random = new Random(System.currentTimeMillis());
@@ -212,6 +210,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
      * @param strSet
      * @return
      */
+    @Deprecated
     private String generateLimitStr(String str, Set<String> strSet) {
         while (strSet.contains(str)) {
             str = this.generateRandomStr(4) + str;
