@@ -3,14 +3,10 @@ package com.husj.dynamicdao.sql;
 import com.husj.dynamicdao.annotations.Query;
 import com.husj.dynamicdao.annotations.query.Condition;
 import com.husj.dynamicdao.annotations.query.Conditions;
-import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import com.husj.dynamicdao.utils.SqlParseUtils;
 import com.husj.dynamicdao.utils.StringUtils;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterUtils;
-import org.springframework.jdbc.core.namedparam.ParsedSql;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
@@ -50,21 +46,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
         if (queryParam.isNamed()) {
             sqlParam = SqlParseUtils.parseNamedSql(sql, queryParam.getParamMap());
         } else {
-            Object[] args = queryParam.getArgs();
-            // 参数列表中去掉pageParam
-            if (queryParam.isPageQuery()) {
-                List<Object> newArgs = new ArrayList<>();
-                for (Object arg : args) {
-                    if (!(arg instanceof PageParam)) {
-                        newArgs.add(arg);
-                    }
-                }
-                args = newArgs.toArray();
-            }
-            sqlParam = SqlParam.of(sql, args);
-        }
-        if (queryParam.onlyOnePageParamArg()) {
-            sqlParam.setArgs(new Object[] {});
+            sqlParam = SqlParam.of(sql, queryParam.getArgs());
         }
 
         log.debug("SQL statement [{}]", sqlParam.getSql());
@@ -77,19 +59,17 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
     public SqlParam generatePageSql(String sql, Object[] args) {
         int offset = queryParam.getPageParam().getSize() * (queryParam.getPageParam().getPage() - 1);
 
-        SqlParam sqlParam = new SqlParam();
         String pageSql = sql + LIMIT + "?, ?";
 
-        Object[] newArgs = new Object[args.length + 2];
+        Object[] pageArgs = new Object[args.length + 2];
         // 原参数列表大于0才进行复制
         if (args.length > 0) {
-            System.arraycopy(args, 0, newArgs, 0, args.length);
+            System.arraycopy(args, 0, pageArgs, 0, args.length);
         }
-        newArgs[newArgs.length - 2] = offset;
-        newArgs[newArgs.length - 1] = queryParam.getPageParam().getSize();
+        pageArgs[pageArgs.length - 2] = offset;
+        pageArgs[pageArgs.length - 1] = queryParam.getPageParam().getSize();
 
-        sqlParam.setSql(pageSql);
-        sqlParam.setArgs(newArgs);
+        SqlParam sqlParam = SqlParam.of(pageSql, pageArgs);
 
         log.debug("SQL statement(page) [{}]", sqlParam.getSql());
         log.debug("SQL arguments(page) {}", Arrays.toString(sqlParam.getArgs()));
