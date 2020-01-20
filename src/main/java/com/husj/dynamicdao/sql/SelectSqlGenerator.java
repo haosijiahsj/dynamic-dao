@@ -3,6 +3,7 @@ package com.husj.dynamicdao.sql;
 import com.husj.dynamicdao.annotations.Query;
 import com.husj.dynamicdao.annotations.query.Condition;
 import com.husj.dynamicdao.annotations.query.Conditions;
+import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import com.husj.dynamicdao.utils.SqlParseUtils;
@@ -49,7 +50,18 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
         if (queryParam.isNamed()) {
             sqlParam = SqlParseUtils.parseNamedSql(sql, queryParam.getParamMap());
         } else {
-            sqlParam = SqlParam.of(sql, queryParam.getArgs());
+            Object[] args = queryParam.getArgs();
+            // 参数列表中去掉pageParam
+            if (queryParam.isPageQuery()) {
+                List<Object> newArgs = new ArrayList<>();
+                for (Object arg : args) {
+                    if (!(arg instanceof PageParam)) {
+                        newArgs.add(arg);
+                    }
+                }
+                args = newArgs.toArray();
+            }
+            sqlParam = SqlParam.of(sql, args);
         }
         if (queryParam.onlyOnePageParamArg()) {
             sqlParam.setArgs(new Object[] {});
@@ -111,7 +123,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
         SqlParam sqlParam = SqlParam.of(sql, args);
 
         log.debug("SQL statement(count) [{}]", sqlParam.getSql());
-        log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
+        log.debug("SQL arguments(count) {}", Arrays.toString(sqlParam.getArgs()));
 
         return sqlParam;
     }
