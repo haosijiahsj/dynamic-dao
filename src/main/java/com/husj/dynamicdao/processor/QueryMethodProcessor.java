@@ -35,7 +35,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         SqlParam sqlParam = sqlGenerator.generateSql();
 
         // 查询数据库
-        List<Map<String, Object>> mapList = this.query(sqlParam, sqlGenerator, queryParam);
+        List<Map<String, Object>> mapList = this.query(sqlParam, sqlGenerator, queryParam.isPageQuery());
 
         // 返回值是PageWrapper
         if (queryParam.isPageQuery() && PageWrapper.class.equals(method.getReturnType())) {
@@ -62,12 +62,12 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      *
      * @param sqlParam
      * @param sqlGenerator
-     * @param queryParam
+     * @param isPageQuery
      * @return
      */
-    private List<Map<String, Object>> query(SqlParam sqlParam, BaseSqlGenerator sqlGenerator, QueryParam queryParam) {
+    private List<Map<String, Object>> query(SqlParam sqlParam, BaseSqlGenerator sqlGenerator, boolean isPageQuery) {
         // 分页查询重新组装sql
-        if (queryParam.isPageQuery()) {
+        if (isPageQuery) {
             SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql(), sqlParam.getArgs());
             return jdbcTemplate.queryForList(pageSqlParam.getSql(), pageSqlParam.getArgs());
         }
