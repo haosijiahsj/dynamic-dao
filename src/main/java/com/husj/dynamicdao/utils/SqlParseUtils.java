@@ -60,7 +60,7 @@ public class SqlParseUtils {
      * @param paramMap
      * @return
      */
-    public static SqlParam parseNamedSqlByPartten(String namedSql, Map<String, Object> paramMap) {
+    public static SqlParam parseNamedSqlByPattern(String namedSql, Map<String, Object> paramMap) {
         if (paramMap == null || paramMap.size() == 0) {
             throw new IllegalArgumentException();
         }
