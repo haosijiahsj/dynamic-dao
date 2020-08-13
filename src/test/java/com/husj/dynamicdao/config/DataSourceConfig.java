@@ -36,7 +36,7 @@ public class DataSourceConfig {
     public DataSource dataSourceTwo() {
         DruidDataSource druidDataSource = new DruidDataSource();
         druidDataSource.setDriverClassName(DRIVER_CLASS_NAME);
-        druidDataSource.setUrl("jdbc:mysql://localhost:3306/two?characterEncoding=utf-8");
+        druidDataSource.setUrl("jdbc:mysql://localhost:3306/hello-world1?characterEncoding=utf-8");
         druidDataSource.setUsername("root");
         druidDataSource.setPassword("123456");
 

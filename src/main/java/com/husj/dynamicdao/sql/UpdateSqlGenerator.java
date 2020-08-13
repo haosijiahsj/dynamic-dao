@@ -4,6 +4,7 @@ import com.husj.dynamicdao.annotations.Update;
 import com.husj.dynamicdao.reflect.ReflectUtils;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
+import com.husj.dynamicdao.utils.SqlParseUtils;
 import com.husj.dynamicdao.utils.StringUtils;
 import org.springframework.util.Assert;
 
@@ -35,9 +36,12 @@ public class UpdateSqlGenerator extends BaseSqlGenerator<Update> {
             boolean flag = annotation.value().toUpperCase().startsWith("UPDATE") || annotation.value().toUpperCase().startsWith("DELETE");
             Assert.isTrue(flag, String.format("This SQL [%s] may be not a UPDATE or DELETE SQL !", annotation.value()));
 
-            sqlParam.setSql(annotation.value());
-            sqlParam.setArgs(queryParam.getArgs());
-            sqlParam.setParamMap(queryParam.getParamMap());
+            if (queryParam.isNamed()) {
+                sqlParam = SqlParseUtils.parseNamedSql(annotation.value(), queryParam.getParamMap());
+            } else {
+                sqlParam.setSql(annotation.value());
+                sqlParam.setArgs(queryParam.getArgs());
+            }
         } else {
             Assert.isTrue(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
 
@@ -75,11 +79,7 @@ public class UpdateSqlGenerator extends BaseSqlGenerator<Update> {
         }
 
         log.debug("SQL statement [{}]", sqlParam.getSql());
-        if (queryParam.isNamed()) {
-            log.debug("SQL arguments [{}]", sqlParam.getParamMap());
-        } else {
-            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
-        }
+        log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
 
         return sqlParam;
     }

@@ -35,11 +35,11 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
         SqlParam sqlParam = sqlGenerator.generateSql();
 
         // 查询数据库
-        List<Map<String, Object>> mapList = this.query(sqlParam, sqlGenerator, queryParam);
+        List<Map<String, Object>> mapList = this.query(sqlParam, sqlGenerator, queryParam.isPageQuery());
 
         // 返回值是PageWrapper
         if (queryParam.isPageQuery() && PageWrapper.class.equals(method.getReturnType())) {
-            SqlParam countSqlParam = sqlGenerator.generateCountSql(sqlParam.getSql());
+            SqlParam countSqlParam = sqlGenerator.generateCountSql(sqlParam.getSql(), sqlParam.getArgs());
             return this.processPageQueryResult(countSqlParam, queryParam, mapList);
         }
 
@@ -62,22 +62,13 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      *
      * @param sqlParam
      * @param sqlGenerator
-     * @param queryParam
+     * @param isPageQuery
      * @return
      */
-    private List<Map<String, Object>> query(SqlParam sqlParam, BaseSqlGenerator sqlGenerator, QueryParam queryParam) {
-        // 具名参数
-        if (queryParam.isNamed()) {
-            if (queryParam.isPageQuery()) {
-                SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql());
-                return namedParameterJdbcTemplate.queryForList(pageSqlParam.getSql(), pageSqlParam.getParamMap());
-            }
-
-            return namedParameterJdbcTemplate.queryForList(sqlParam.getSql(), sqlParam.getParamMap());
-        }
-        // ?占位符
-        if (queryParam.isPageQuery()) {
-            SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql());
+    private List<Map<String, Object>> query(SqlParam sqlParam, BaseSqlGenerator sqlGenerator, boolean isPageQuery) {
+        // 分页查询重新组装sql
+        if (isPageQuery) {
+            SqlParam pageSqlParam = sqlGenerator.generatePageSql(sqlParam.getSql(), sqlParam.getArgs());
             return jdbcTemplate.queryForList(pageSqlParam.getSql(), pageSqlParam.getArgs());
         }
 
@@ -91,11 +82,9 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      */
     private String getMapperIgnoreString() {
         String ignoreString = configuration.getIgnoreString();
-        for (Annotation methodAnnotation : methodAnnotations) {
-            if (MapperIgnore.class == methodAnnotation.annotationType()) {
-                ignoreString = ((MapperIgnore) methodAnnotation).value();
-                break;
-            }
+        // 方法上有这个注解
+        if (method.isAnnotationPresent(MapperIgnore.class)) {
+            ignoreString = method.getAnnotation(MapperIgnore.class).value();
         }
 
         return ignoreString;
@@ -230,7 +219,7 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
     private Object processPageQueryResult(SqlParam countSqlParam, QueryParam queryParam, List<Map<String, Object>> mapList) {
         PageParam pageParam = queryParam.getPageParam();
         // 查询总条数
-        long totalRows = this.countQuery(countSqlParam, queryParam);
+        long totalRows = this.countQuery(countSqlParam);
         int totalPages = 0;
         if (totalRows != 0) {
             totalPages = ((int) (totalRows / pageParam.getSize())) + (totalRows % pageParam.getSize() == 0 ? 0 : 1);
@@ -272,18 +261,10 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      * 查询总条数
      *
      * @param sqlParam
-     * @param queryParam
      * @return
      */
-    private Long countQuery(SqlParam sqlParam, QueryParam queryParam) {
-        Long totalRows;
-        if (queryParam.isNamed()) {
-            totalRows = namedParameterJdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getParamMap(), Long.class);
-        } else {
-            totalRows = jdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getArgs(), Long.class);
-        }
-
-        return totalRows;
+    private Long countQuery(SqlParam sqlParam) {
+        return jdbcTemplate.queryForObject(sqlParam.getSql(), sqlParam.getArgs(), Long.class);
     }
 
 }

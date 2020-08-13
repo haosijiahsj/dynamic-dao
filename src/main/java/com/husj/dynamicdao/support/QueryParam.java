@@ -5,6 +5,7 @@ import com.husj.dynamicdao.page.PageParam;
 import lombok.Data;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +55,11 @@ public class QueryParam {
         }
         // 若初始化后paramMap不为空则是命名参数方式
         this.named = !this.paramMap.isEmpty();
+
+        // 不是具名参数查询，且是分页查询，则需要在参数列表中去掉pageParam
+        if (!this.isNamed() && this.isPageQuery()) {
+            args = Arrays.stream(args).filter(arg -> !(arg instanceof PageParam)).toArray();
+        }
     }
 
     /**
@@ -77,7 +83,7 @@ public class QueryParam {
      * @return
      */
     public boolean onlyOnePageParamArg() {
-        return this.args.length == 1 && pageParam != null;
+        return this.args.length == 0 && pageParam != null;
     }
 
     /**

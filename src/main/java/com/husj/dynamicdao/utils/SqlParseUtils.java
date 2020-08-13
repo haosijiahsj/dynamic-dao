@@ -26,12 +26,41 @@ public class SqlParseUtils {
     private SqlParseUtils() {}
 
     /**
-     * 解析具名参数sql, 返回预编译sql与参数数组
+     * 解析具名参数sql, 返回?展位符的sql与参数数组
      * @param namedSql
      * @param paramMap
      * @return
      */
     public static SqlParam parseNamedSql(String namedSql, Map<String, Object> paramMap) {
+        ParsedSql parsedSql = NamedParameterUtils.parseSqlStatement(namedSql);
+
+        String sqlToUse = NamedParameterUtils.substituteNamedParameters(parsedSql, new MapSqlParameterSource(paramMap));
+        Object[] originalArgs = NamedParameterUtils.buildValueArray(parsedSql, new MapSqlParameterSource(paramMap), null);
+
+        List<Object> argsList = new ArrayList<>();
+        for (Object originalArg : originalArgs) {
+            // 展开参数
+            if (originalArg instanceof Collection) {
+                argsList.addAll((Collection) originalArg);
+            } else {
+                argsList.add(originalArg);
+            }
+        }
+
+        SqlParam sqlParam = new SqlParam();
+        sqlParam.setSql(sqlToUse);
+        sqlParam.setArgs(argsList.toArray());
+
+        return sqlParam;
+    }
+
+    /**
+     * 解析具名参数sql, 返回预编译sql与参数数组
+     * @param namedSql
+     * @param paramMap
+     * @return
+     */
+    public static SqlParam parseNamedSqlByPattern(String namedSql, Map<String, Object> paramMap) {
         if (paramMap == null || paramMap.size() == 0) {
             throw new IllegalArgumentException();
         }
@@ -67,23 +96,7 @@ public class SqlParseUtils {
 
         log.info("{}", psql);
 
-        return SqlParam.of(psql, args.toArray(), paramMap);
-    }
-
-    public static void main(String[] args) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", Arrays.asList(1, 2, 3));
-        map.put("name", "hsj");
-        SqlParam sqlParam = parseNamedSql("select * from product where id IN (:id) and name = :name and t IN (:id)", map);
-        log.info("{}", sqlParam);
-
-        ParsedSql parsedSql = NamedParameterUtils.parseSqlStatement("select * from product where id IN (:id) and name = :name and t IN (:id)");
-
-        String sqlToUse = NamedParameterUtils.substituteNamedParameters(parsedSql, new MapSqlParameterSource(map));
-        Object[] params = NamedParameterUtils.buildValueArray(parsedSql, new MapSqlParameterSource(map), null);
-
-        System.out.println(sqlToUse);
-        System.out.println(Arrays.toString(params));
+        return SqlParam.of(psql, args.toArray());
     }
 
 }

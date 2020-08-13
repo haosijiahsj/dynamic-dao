@@ -5,6 +5,7 @@ import com.husj.dynamicdao.annotations.query.Condition;
 import com.husj.dynamicdao.annotations.query.Conditions;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
+import com.husj.dynamicdao.utils.SqlParseUtils;
 import com.husj.dynamicdao.utils.StringUtils;
 import org.springframework.util.Assert;
 
@@ -28,10 +29,6 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
     private static final Pattern ORDER_BY_PATTERN = Pattern.compile("\\s+(ORDER\\s+BY)\\s+[^'\"]", Pattern.CASE_INSENSITIVE);
     private static final Pattern GROUP_BY_PATTERN = Pattern.compile("\\s+(GROUP\\s+BY)\\s+[^'\"]", Pattern.CASE_INSENSITIVE);
 
-    private static final String OFFSET = "dynamicDaoOffset";
-    private static final String SIZE = "dynamicDaoSize";
-    private static final String LETTER_CHAR = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
     public SelectSqlGenerator(Method method, Query annotation, QueryParam queryParam) {
         super.method = method;
         super.annotation = annotation;
@@ -45,63 +42,43 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
 
         String sql = annotation.value() + this.processConditions(method, queryParam.getParamMap());
 
-        SqlParam sqlParam = SqlParam.of(sql, queryParam.getArgs(), queryParam.getParamMap());
-        if (queryParam.onlyOnePageParamArg()) {
-            sqlParam.setArgs(new Object[] {});
+        SqlParam sqlParam;
+        if (queryParam.isNamed()) {
+            sqlParam = SqlParseUtils.parseNamedSql(sql, queryParam.getParamMap());
+        } else {
+            sqlParam = SqlParam.of(sql, queryParam.getArgs());
         }
 
         log.debug("SQL statement [{}]", sqlParam.getSql());
-        if (queryParam.isNamed()) {
-            log.debug("SQL arguments [{}]", sqlParam.getParamMap());
-        } else {
-            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
-        }
+        log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
 
         return sqlParam;
     }
 
     @Override
-    public SqlParam generatePageSql(String sql) {
+    public SqlParam generatePageSql(String sql, Object[] args) {
         int offset = queryParam.getPageParam().getSize() * (queryParam.getPageParam().getPage() - 1);
 
-        String pageSql;
-        SqlParam sqlParam = new SqlParam();
-        if (queryParam.isNamed()) {
-            pageSql = sql + LIMIT + COLON + OFFSET + ", " + COLON + SIZE;
+        String pageSql = sql + LIMIT + "?, ?";
 
-            Map<String, Object> map = new HashMap<>(queryParam.getParamMap().size());
-            queryParam.getParamMap().forEach(map::put);
-
-            map.put(OFFSET, offset);
-            map.put(SIZE, queryParam.getPageParam().getSize());
-
-            sqlParam.setParamMap(map);
-        } else {
-            Assert.isTrue(queryParam.pageParamIsLastArg(), "Use '?' delimiter, 'PageParam' must at last location !");
-            pageSql = sql + LIMIT + "?, ?";
-
-            Object[] newArgs = new Object[queryParam.getArgs().length + 1];
-            System.arraycopy(queryParam.getArgs(), 0, newArgs, 0, queryParam.getArgs().length);
-            newArgs[newArgs.length - 2] = offset;
-            newArgs[newArgs.length - 1] = queryParam.getPageParam().getSize();
-
-            sqlParam.setArgs(newArgs);
+        Object[] pageArgs = new Object[args.length + 2];
+        // 原参数列表大于0才进行复制
+        if (args.length > 0) {
+            System.arraycopy(args, 0, pageArgs, 0, args.length);
         }
+        pageArgs[pageArgs.length - 2] = offset;
+        pageArgs[pageArgs.length - 1] = queryParam.getPageParam().getSize();
 
-        sqlParam.setSql(pageSql);
+        SqlParam sqlParam = SqlParam.of(pageSql, pageArgs);
 
         log.debug("SQL statement(page) [{}]", sqlParam.getSql());
-        if (queryParam.isNamed()) {
-            log.debug("SQL arguments(page) [{}]", sqlParam.getParamMap());
-        } else {
-            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
-        }
+        log.debug("SQL arguments(page) {}", Arrays.toString(sqlParam.getArgs()));
 
         return sqlParam;
     }
 
     @Override
-    public SqlParam generateCountSql(String sql) {
+    public SqlParam generateCountSql(String sql, Object[] args) {
         // 拼接头部
         Matcher selectMatcher = SELECT_PATTERN.matcher(sql);
         String countSql = selectMatcher.find() ? "SELECT COUNT(" + selectMatcher.group(1) + ") " : "SELECT COUNT(1) ";
@@ -123,22 +100,10 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
             sql = "SELECT COUNT(1) FROM (" + sql + ") AS tmp";
         }
 
-        SqlParam sqlParam = new SqlParam();
-        if (!queryParam.isNamed()) {
-            Object[] newArgs = new Object[queryParam.getArgs().length - 1];
-            System.arraycopy(queryParam.getArgs(), 0, newArgs, 0, newArgs.length);
-            sqlParam.setArgs(newArgs);
-        } else {
-            sqlParam.setParamMap(queryParam.getParamMap());
-        }
-        sqlParam.setSql(sql);
+        SqlParam sqlParam = SqlParam.of(sql, args);
 
         log.debug("SQL statement(count) [{}]", sqlParam.getSql());
-        if (queryParam.isNamed()) {
-            log.debug("SQL arguments(count) [{}]", sqlParam.getParamMap());
-        } else {
-            log.debug("SQL arguments {}", Arrays.toString(sqlParam.getArgs()));
-        }
+        log.debug("SQL arguments(count) {}", Arrays.toString(sqlParam.getArgs()));
 
         return sqlParam;
     }
@@ -187,35 +152,6 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
         }
 
         return WHERE + conditionSql.toString();
-    }
-
-    /**
-     * 生成随机字符串
-     * @param length
-     * @return
-     */
-    @Deprecated
-    private String generateRandomStr(int length) {
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random(System.currentTimeMillis());
-        for (int i = 0; i < length; i++) {
-            sb.append(LETTER_CHAR.charAt(random.nextInt(LETTER_CHAR.length())));
-        }
-        return sb.toString();
-    }
-
-    /**
-     * limit中两个占位符字符随机生成，避免与用户传入的冲突
-     * @param str
-     * @param strSet
-     * @return
-     */
-    @Deprecated
-    private String generateLimitStr(String str, Set<String> strSet) {
-        while (strSet.contains(str)) {
-            str = this.generateRandomStr(4) + str;
-        }
-        return str;
     }
 
 }

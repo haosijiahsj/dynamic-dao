@@ -26,15 +26,6 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
         BaseSqlGenerator<Save> sqlGenerator = new InsertSqlGenerator(method, annotation, queryParam);
         SqlParam sqlParam = sqlGenerator.generateSql();
 
-        // 使用的是具名参数
-        if (queryParam.isNamed()) {
-            if (annotation.returnKey()) {
-                return this.namedUpdateForReturnKey(sqlParam.getSql(), sqlParam.getParamMap());
-            }
-
-            return namedParameterJdbcTemplate.update(sqlParam.getSql(), sqlParam.getParamMap());
-        }
-
         if (annotation.returnKey()) {
             return this.updateForReturnKey(sqlParam.getSql(), sqlParam.getArgs());
         }

@@ -18,10 +18,9 @@ public class SqlParam {
 
     private String sql;
     private Object[] args;
-    private Map<String, Object> paramMap;
 
-    public static SqlParam of(String sql, Object[] args, Map<String, Object> paramMap) {
-        return new SqlParam(sql, args, paramMap);
+    public static SqlParam of(String sql, Object[] args) {
+        return new SqlParam(sql, args);
     }
 
 }

@@ -21,11 +21,11 @@ public abstract class BaseSqlGenerator<T> {
 
     public abstract SqlParam generateSql() throws Exception;
 
-    public SqlParam generatePageSql(String sql) {
+    public SqlParam generatePageSql(String sql, Object[] args) {
         return null;
     }
 
-    public SqlParam generateCountSql(String sql) {
+    public SqlParam generateCountSql(String sql, Object[] args) {
         return null;
     }
 
