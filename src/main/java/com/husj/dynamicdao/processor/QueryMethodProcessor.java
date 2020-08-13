@@ -82,11 +82,9 @@ public class QueryMethodProcessor<T> extends BaseMethodProcessor<Query> {
      */
     private String getMapperIgnoreString() {
         String ignoreString = configuration.getIgnoreString();
-        for (Annotation methodAnnotation : methodAnnotations) {
-            if (MapperIgnore.class == methodAnnotation.annotationType()) {
-                ignoreString = ((MapperIgnore) methodAnnotation).value();
-                break;
-            }
+        // 方法上有这个注解
+        if (method.isAnnotationPresent(MapperIgnore.class)) {
+            ignoreString = method.getAnnotation(MapperIgnore.class).value();
         }
 
         return ignoreString;
