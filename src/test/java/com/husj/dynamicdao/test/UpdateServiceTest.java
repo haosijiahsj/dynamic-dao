@@ -1,12 +1,14 @@
 package com.husj.dynamicdao.test;
 
 import com.husj.dynamicdao.model.EntityPo;
+import com.husj.dynamicdao.model.Status;
 import com.husj.dynamicdao.service.UpdateService;
 import com.husj.dynamicdao.utils.ServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +53,8 @@ public class UpdateServiceTest {
         entityPo.setSex(1);
         entityPo.setId(4);
         entityPo.setAvailable(false);
+        entityPo.setCreateTime(LocalDateTime.now());
+        entityPo.setStatus(Status.SUCCESS);
 
         int n = service.update4(entityPo);
         log.info("{}", n);

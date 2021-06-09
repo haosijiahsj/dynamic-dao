@@ -75,12 +75,13 @@ public class SaveServiceTest {
     @Test
     public void save8Test() {
         EntityPo entityPo = new EntityPo();
-        entityPo.setName("aaa");
+        entityPo.setName("hhssjj");
         entityPo.setSex(1);
         entityPo.setTel("18812345678");
         entityPo.setAvailable(false);
         entityPo.setCreateTime(LocalDateTime.now());
         entityPo.setStatus(Status.SUCCESS);
+        entityPo.setId(100);
 
         int n = service.save8(entityPo);
         log.info("{}", n);

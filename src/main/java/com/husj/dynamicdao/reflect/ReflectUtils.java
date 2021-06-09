@@ -1,16 +1,18 @@
 package com.husj.dynamicdao.reflect;
 
-import com.husj.dynamicdao.annotations.support.Convert;
+import com.husj.dynamicdao.annotations.mapping.EnumType;
 import com.husj.dynamicdao.exceptions.DynamicDaoException;
+import com.husj.dynamicdao.reflect.definition.ColumnDefinition;
+import com.husj.dynamicdao.reflect.definition.TableDefinition;
 import com.husj.dynamicdao.support.AttributeConverter;
 import com.husj.dynamicdao.utils.StringUtils;
 import com.husj.dynamicdao.utils.DateTimeUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Assert;
 import com.husj.dynamicdao.utils.NumberUtils;
+import org.springframework.util.Assert;
 
-import javax.persistence.*;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,39 +30,32 @@ public class ReflectUtils {
     private ReflectUtils() {}
 
     /**
-     * 获取值
+     * 获取列值
      * @param arg
+     * @param tableDefinition
      * @return
      */
-    public static Map<String, Object> getColumnValue(Object arg) {
-        Field[] fields = arg.getClass().getDeclaredFields();
-        Map<String, Object> map = new HashMap<>();
-        for (Field field : fields) {
-            Id idAnno = field.getAnnotation(Id.class);
-            // 不扫描@Id列
-            if (idAnno != null) {
+    public static Map<String, Object> getColumnValue(Object arg, TableDefinition tableDefinition) {
+        List<ColumnDefinition> columnDefinitions = tableDefinition.getColumnDefinitions();
+        Map<String, Object> map = new LinkedHashMap<>();
+        for (ColumnDefinition columnDefinition : columnDefinitions) {
+            if (columnDefinition.isPrimaryKey()) {
                 continue;
             }
-            Column columnAnno = field.getAnnotation(Column.class);
-            if (columnAnno == null) {
-                continue;
-            }
-
-            String columnName = "".equals(columnAnno.name()) ? field.getName() : columnAnno.name();
+            Field field = columnDefinition.getField();
             try {
-                field.setAccessible(true);
-                Object columnValue = field.get(arg);
+                Object columnValue = getObjectValue(arg, field);
                 if (columnValue != null) {
+                    Class<?> converter = columnDefinition.getConverter();
+                    EnumType enumType = columnDefinition.getEnumType();
                     // 处理转换器注解
-                    Convert convertAnno = field.getAnnotation(Convert.class);
-                    Enumerated enumeratedAnno = field.getAnnotation(Enumerated.class);
-                    if (convertAnno != null) {
-                        Class converter = convertAnno.converter();
+                    if (converter != null && !converter.equals(void.class)) {
                         AttributeConverter attributeConverter = (AttributeConverter) converter.newInstance();
                         columnValue = attributeConverter.convertToDatabaseColumn(columnValue);
-                    } else if (enumeratedAnno != null && field.getType().isEnum()) {
+                    } else if (enumType != null && !EnumType.NONE.equals(enumType)) {
+                        Assert.isTrue(field.getType().isEnum(), String.format("字段：[%s]不是枚举，无需定义EnumType !", field.getName()));
                         Enum enumValue = (Enum) columnValue;
-                        columnValue = EnumType.STRING.equals(enumeratedAnno.value()) ? enumValue.name() : enumValue.ordinal();
+                        columnValue = EnumType.STRING.equals(enumType) ? enumValue.name() : enumValue.ordinal();
                     } else if (LocalDateTime.class.equals(field.getType())) {
                         columnValue = DateTimeUtils.convertLocalDateTime2Timestamp((LocalDateTime) columnValue);
                     } else if (LocalDate.class.equals(field.getType())) {
@@ -69,8 +64,7 @@ public class ReflectUtils {
                         columnValue = DateTimeUtils.convertDate2Timestamp((Date) columnValue);
                     }
                 }
-                field.setAccessible(false);
-                map.put(columnName, columnValue);
+                map.put(columnDefinition.getColumnName(), columnValue);
             } catch (IllegalAccessException | InstantiationException e) {
                 throw new DynamicDaoException(String.format("Can't get [%s] value !", field.getName()), e);
             }
@@ -80,97 +74,43 @@ public class ReflectUtils {
     }
 
     /**
-     * 获取@Id列的值
+     * 获取值
      * @param arg
+     * @param field
      * @return
      */
-    public static Map<String, Object> getIdValue(Object arg) {
-        Field[] fields = arg.getClass().getDeclaredFields();
-        Map<String, Object> map = new HashMap<>();
-        for (Field field : fields) {
-            Id idAnno = field.getAnnotation(Id.class);
-            if (idAnno == null) {
-                continue;
-            }
-            Column columnAnno = field.getAnnotation(Column.class);
-            String columnName = field.getName();
-            if (columnAnno != null && !"".equals(columnAnno.name())) {
-                columnName = columnAnno.name();
-            }
-
-            try {
-                field.setAccessible(true);
-                Object columnValue = field.get(arg);
-                field.setAccessible(false);
-                map.put(columnName, columnValue);
-            } catch (IllegalAccessException e) {
-                throw new DynamicDaoException(String.format("Can't get [%s] value !", field.getName()), e);
-            }
+    public static Object getObjectValue(Object arg, Field field) {
+        if ((!Modifier.isPublic(field.getModifiers()) ||
+                !Modifier.isPublic(field.getDeclaringClass().getModifiers()) ||
+                Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
+            field.setAccessible(true);
         }
 
-        Assert.isTrue(map.size() == 1, String.format("Class [%s] allow only one 'id' column !", arg.getClass().getName()));
+        try {
 
-        return map;
+            return field.get(arg);
+        } catch (Exception e) {
+            throw new DynamicDaoException(String.format("Can't get field: [%s] value !", field), e);
+        }
     }
 
     /**
-     * 获取有@Id注解的字段
-     * @param clazz
-     * @return
-     */
-    private static Field getIdField(Class<?> clazz) {
-        for (Field field : clazz.getDeclaredFields()) {
-            Id idAnno = field.getAnnotation(Id.class);
-            if (idAnno != null) {
-                return field;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * 获取id列名称
-     * @param clazz
-     * @return
-     */
-    public static String getIdName(Class<?> clazz) {
-        Field field = getIdField(clazz);
-        if (field == null) {
-            throw new DynamicDaoException(String.format("Can't find id field in [%s]!", clazz));
-        }
-
-        String idName = field.getName();
-        Column columnAnno = field.getAnnotation(Column.class);
-        if (columnAnno != null && !"".equals(columnAnno.name())) {
-            idName = columnAnno.name();
-        }
-
-        return idName;
-    }
-
-    /**
-     * 获取表名
+     * 设置值
      * @param arg
-     * @return
+     * @param targetValue
+     * @param field
      */
-    public static String getTableName(Object arg) {
-        return getTableName(arg.getClass());
-    }
-
-    /**
-     * 获取表名
-     * @param clazz
-     * @return
-     */
-    public static String getTableName(Class<?> clazz) {
-        Entity entityAnno = clazz.getAnnotation(Entity.class);
-        Table tableAnno = clazz.getAnnotation(Table.class);
-
-        Assert.isTrue(entityAnno != null, String.format("Class [%s] must have 'Entity' annotation !", clazz.getName()));
-        Assert.isTrue(tableAnno != null, String.format("Class [%s] must have 'Table' annotation !", clazz.getName()));
-
-        return "".equals(tableAnno.name()) ? clazz.getSimpleName() : tableAnno.name();
+    public static void setObjectValue(Object arg, Object targetValue, Field field) {
+        if ((!Modifier.isPublic(field.getModifiers()) ||
+                !Modifier.isPublic(field.getDeclaringClass().getModifiers()) ||
+                Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
+            field.setAccessible(true);
+        }
+        try {
+            field.set(arg, targetValue);
+        } catch (IllegalAccessException e) {
+            throw new DynamicDaoException(String.format("Can't set field: [%s] value !", field), e);
+        }
     }
 
     /**
@@ -240,7 +180,7 @@ public class ReflectUtils {
      * @return
      */
     public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, boolean ignoreCase) {
-        Field[] fields = targetClass.getDeclaredFields();
+        List<ColumnDefinition> columnDefinitions = MappingUtils.getColumnDefinitionsByClass(targetClass);
         List<Object> objects = new ArrayList<>();
 
         for (Map<String, Object> map : mapList) {
@@ -250,32 +190,35 @@ public class ReflectUtils {
             } catch (ReflectiveOperationException e) {
                 throw new DynamicDaoException(String.format("Can't instance class: [%s] !", targetClass.getName()), e);
             }
-            for (Field field : fields) {
-                String fieldName = field.getName();
-                Column columnAnno = field.getAnnotation(Column.class);
-                if (columnAnno != null && !"".equals(columnAnno.name())) {
-                    fieldName = columnAnno.name();
-                }
-                Object value = map.get(ignoreCase ? fieldName.toUpperCase() : fieldName);
+
+            for (ColumnDefinition columnDefinition : columnDefinitions) {
+                Field field = columnDefinition.getField();
+                String columnName = columnDefinition.getColumnName();
+
+                Object value = map.get(ignoreCase ? columnName.toUpperCase() : columnName);
                 if (value == null) {
                     continue;
                 }
 
                 Object targetValue;
-                Convert convertAnno = field.getAnnotation(Convert.class);
-                Enumerated enumeratedAnno = field.getAnnotation(Enumerated.class);
-                if (convertAnno != null) {
-                    // 处理Convert注解
-                    Class converter = convertAnno.converter();
+                Class<?> converter = columnDefinition.getConverter();
+                EnumType enumType = columnDefinition.getEnumType();
+                if (converter != null && !void.class.equals(converter)) {
                     try {
                         AttributeConverter attributeConverter = (AttributeConverter) converter.newInstance();
                         targetValue = attributeConverter.convertToEntityAttribute(value);
                     } catch (InstantiationException | IllegalAccessException e) {
                         throw new DynamicDaoException("Convert column to entity error!", e);
                     }
-                } else if (enumeratedAnno != null && field.getType().isEnum()) {
-                    // 处理枚举，仅在有Enumerated注解才进行处理
-                    targetValue = Enum.valueOf((Class<Enum>) field.getType(), value.toString());
+                } else if (enumType != null && !EnumType.NONE.equals(enumType)) {
+                    Assert.isTrue(field.getType().isEnum(), String.format("字段：[%s]不是枚举，无需定义EnumType !", field.getName()));
+                    if (EnumType.STRING.equals(enumType)) {
+                        targetValue = Enum.valueOf((Class<Enum>) field.getType(), value.toString());
+                    } else {
+                        Object[] enumConstants = field.getType().getEnumConstants();
+                        int ordinal = Integer.parseInt(value.toString());
+                        targetValue = enumConstants[ordinal];
+                    }
                 } else {
                     // 若map中该fieldName的值不为空，则转换成字段中需要的数据类型
                     targetValue = convertObjectToTarget(field.getType(), value);
@@ -285,13 +228,7 @@ public class ReflectUtils {
                     continue;
                 }
 
-                field.setAccessible(true);
-                try {
-                    field.set(object, targetValue);
-                } catch (IllegalAccessException e) {
-                    throw new DynamicDaoException(String.format("Can't set field: [%s] value !", field), e);
-                }
-                field.setAccessible(false);
+                setObjectValue(object, targetValue, field);
             }
 
             objects.add(object);
@@ -309,20 +246,22 @@ public class ReflectUtils {
      * @throws Exception
      */
     public static List<Object> rowMapping(List<Map<String, Object>> mapList, Class targetClass, String ignoreString, boolean ignoreCase) {
-        mapList = mapList.stream().map(m -> {
-            Map<String, Object> resultMap = new HashMap<>(m.size());
-            m.keySet().forEach(k -> {
-                // 将所有数据列名转换为大写
-                String key = ignoreCase ? k.toUpperCase() : k;
-                // 不为空才进行替换
-                key = StringUtils.isNotEmpty(ignoreString) ? key.replace(ignoreString, "") : key;
+        List<Map<String, Object>> result = mapList.stream()
+                .map(m -> {
+                    Map<String, Object> resultMap = new HashMap<>(m.size());
+                    m.keySet().forEach(k -> {
+                        // 将所有数据列名转换为大写
+                        String key = ignoreCase ? k.toUpperCase() : k;
+                        // 不为空才进行替换
+                        key = StringUtils.isNotEmpty(ignoreString) ? key.replace(ignoreString, "") : key;
 
-                resultMap.put(key, m.get(k));
-            });
-            return resultMap;
-        }).collect(Collectors.toList());
+                        resultMap.put(key, m.get(k));
+                    });
+                    return resultMap;
+                })
+                .collect(Collectors.toList());
 
-        return rowMapping(mapList, targetClass, ignoreCase);
+        return rowMapping(result, targetClass, ignoreCase);
     }
 
 }

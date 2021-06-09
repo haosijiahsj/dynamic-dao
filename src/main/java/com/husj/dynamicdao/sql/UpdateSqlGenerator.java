@@ -1,7 +1,10 @@
 package com.husj.dynamicdao.sql;
 
 import com.husj.dynamicdao.annotations.Update;
+import com.husj.dynamicdao.reflect.MappingUtils;
 import com.husj.dynamicdao.reflect.ReflectUtils;
+import com.husj.dynamicdao.reflect.definition.ColumnDefinition;
+import com.husj.dynamicdao.reflect.definition.TableDefinition;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import com.husj.dynamicdao.utils.SqlParseUtils;
@@ -43,36 +46,33 @@ public class UpdateSqlGenerator extends BaseSqlGenerator<Update> {
                 sqlParam.setArgs(queryParam.getArgs());
             }
         } else {
-            Assert.isTrue(queryParam.onlyOneArg(), "Use 'JPA Entity', just support one argument !");
+            Assert.isTrue(queryParam.onlyOneArg(), "Use 'Entity', just support one argument !");
 
-            String sql = UPDATE + ReflectUtils.getTableName(queryParam.firstArg()) + " SET ";
+            TableDefinition tableDefinition = MappingUtils.getTableDefinitionByClass(queryParam.firstArg().getClass());
+            String sql = UPDATE + tableDefinition.getTableName() + " SET ";
 
-            Map<String, Object> idMap = ReflectUtils.getIdValue(queryParam.firstArg());
-            Map<String, Object> columnMap = ReflectUtils.getColumnValue(queryParam.firstArg());
+            ColumnDefinition idColumnDefinition = tableDefinition.getIdColumnDefinition();
+            Object idValue = ReflectUtils.getObjectValue(queryParam.firstArg(), idColumnDefinition.getField());
+            Map<String, Object> columnMap = ReflectUtils.getColumnValue(queryParam.firstArg(), tableDefinition);
 
             List<String> propertyStrs = new ArrayList<>();
             columnMap.keySet().forEach(k -> propertyStrs.add("`" + k + "` = ?"));
 
-            List<String> idStrs = new ArrayList<>();
-            idMap.keySet().forEach(k -> idStrs.add("`" + k + "` = ?"));
 
             sql += StringUtils.join(", ", propertyStrs);
             sql += " WHERE ";
-            sql += StringUtils.join(", ", idStrs);
+            sql += "`" + idColumnDefinition.getColumnName() + "` = ?";
 
-            Object[] newArgs = new Object[idMap.size() + columnMap.size()];
+            Object[] newArgs = new Object[columnMap.size() + 1];
 
             int i = 0;
             for (String key : columnMap.keySet()) {
                 newArgs[i] = columnMap.get(key);
                 i++;
             }
-            for (String key : idMap.keySet()) {
-                newArgs[i] = idMap.get(key);
-                i++;
-            }
+            newArgs[i] = idValue;
 
-            columnMap.putAll(idMap);
+            columnMap.put(idColumnDefinition.getColumnName(), idValue);
 
             sqlParam.setSql(sql);
             sqlParam.setArgs(newArgs);

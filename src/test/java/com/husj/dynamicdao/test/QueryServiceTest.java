@@ -37,6 +37,11 @@ public class QueryServiceTest {
     public void query2Test() {
         List<EntityPo> list = service.query2(1);
         log.info("{}条数据，{}", list.size(), list);
+        Map<String, Object> map = new HashMap<>();
+        map.put("sex", 1);
+
+        List<EntityPo> list1 = service.query4(map);
+        log.info("{}条数据，{}", list1.size(), list);
     }
 
     @Test
@@ -218,7 +223,7 @@ public class QueryServiceTest {
 
     @Test
     public void query27Test() {
-        List<EntityPo> entityPos = service.query27(Arrays.asList(80, 81));
+        List<EntityPo> entityPos = service.query27(Arrays.asList(4, 10));
         log.info("{}", entityPos);
         log.info("{}", entityPos.get(0).getName());
     }

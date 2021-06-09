@@ -26,7 +26,7 @@ public class SqlParseUtils {
     private SqlParseUtils() {}
 
     /**
-     * 解析具名参数sql, 返回?展位符的sql与参数数组
+     * 解析具名参数sql, 返回?占位符的sql与参数数组
      * @param namedSql
      * @param paramMap
      * @return

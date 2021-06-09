@@ -1,24 +1,21 @@
-package com.husj.dynamicdao.annotations.support;
+package com.husj.dynamicdao.annotations.mapping;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import java.lang.annotation.RetentionPolicy;
-
 /**
- * @author hushengjun
- * @date 2019/5/15
- *
- * 转换器
+ * Created by 胡胜钧 on 8/2 0002.
+ * id列注解
  */
 @Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Convert {
+public @interface IdColumn {
 
-    Class converter() default void.class;
-    String attributeName() default "";
+    String value() default "";
+    IdType idType() default IdType.AUTO;
 
 }

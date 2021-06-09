@@ -151,7 +151,7 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
             return "";
         }
 
-        return WHERE + conditionSql.toString();
+        return WHERE + conditionSql;
     }
 
 }

@@ -1,7 +1,8 @@
 package com.husj.dynamicdao.sql;
 
 import com.husj.dynamicdao.annotations.Get;
-import com.husj.dynamicdao.reflect.ReflectUtils;
+import com.husj.dynamicdao.reflect.MappingUtils;
+import com.husj.dynamicdao.reflect.definition.TableDefinition;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import org.springframework.util.Assert;
@@ -28,8 +29,9 @@ public class GetSqlGenerator extends BaseSqlGenerator<Get> {
         Assert.isTrue(queryParam.onlyOneArg(), "Use Get annotation, just support one argument !");
         Class<?> returnType = method.getReturnType();
 
-        String tableName = ReflectUtils.getTableName(returnType);
-        String idName = ReflectUtils.getIdName(returnType);
+        TableDefinition tableDefinition = MappingUtils.getTableDefinitionByClass(returnType);
+        String tableName = tableDefinition.getTableName();
+        String idName = tableDefinition.getIdColumnDefinition().getColumnName();
 
         SqlParam sqlParam = new SqlParam();
         sqlParam.setSql(String.format(SELECT, tableName, idName));

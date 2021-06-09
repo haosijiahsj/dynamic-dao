@@ -1,8 +1,13 @@
 package com.husj.dynamicdao.model;
 
+import com.husj.dynamicdao.annotations.mapping.Column;
+import com.husj.dynamicdao.annotations.mapping.EnumType;
+import com.husj.dynamicdao.annotations.mapping.IdColumn;
+import com.husj.dynamicdao.annotations.mapping.IdType;
+import com.husj.dynamicdao.annotations.mapping.Table;
+import com.husj.dynamicdao.convert.StatusConverter;
 import lombok.Data;
 
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 /**
@@ -10,16 +15,13 @@ import java.time.LocalDateTime;
  * @date 7/4 0004.
  */
 @Data
-@Entity
-@Table(name = "entity")
+//@Table("entity")
 public class EntityPo {
 
-    @Id
-    @Column
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @IdColumn
+    private Integer id;
 
-    @Column(name = "name_")
+    @Column("name_")
     private String name;
 
     @Column
@@ -31,11 +33,10 @@ public class EntityPo {
     @Column
     private Boolean available;
 
-    @Column(name = "create_time")
+    @Column("create_time")
     private LocalDateTime createTime;
 
-    @Column(name = "status_")
-    @Enumerated(EnumType.STRING)
+    @Column(value = "status_", enumType = EnumType.STRING)
     private Status status;
 
 }
