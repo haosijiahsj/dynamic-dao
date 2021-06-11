@@ -13,7 +13,6 @@ import com.husj.dynamicdao.utils.SqlParseUtils;
 import com.husj.dynamicdao.utils.StringUtils;
 import org.springframework.util.Assert;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,7 +26,7 @@ import java.util.UUID;
  */
 public class InsertSqlGenerator extends BaseSqlGenerator<Save> {
 
-    private static final String INSERT = "INSERT INTO ";
+    private static final String INSERT = "INSERT INTO `%s` (%s) VALUES (%s)";
 
     public InsertSqlGenerator(Method method, Save annotation, QueryParam queryParam) {
         super.method = method;
@@ -57,8 +56,6 @@ public class InsertSqlGenerator extends BaseSqlGenerator<Save> {
             ColumnDefinition idColumnDefinition = tableDefinition.getIdColumnDefinition();
             this.processIdColumn(queryParam.firstArg(), idColumnDefinition, map);
 
-            String sql = INSERT + tableDefinition.getTableName() + " ";
-
             List<String> propertyStrs = new ArrayList<>();
             List<String> markStrs = new ArrayList<>();
             map.keySet().forEach(k -> {
@@ -66,9 +63,8 @@ public class InsertSqlGenerator extends BaseSqlGenerator<Save> {
                 markStrs.add("?");
             });
 
-            sql += "(" + StringUtils.join(", ", propertyStrs) + ")";
-            sql += " VALUES ";
-            sql += "(" + StringUtils.join(", ", markStrs) + ")";
+            String sql = String.format(INSERT, tableDefinition.getTableName(), String.join(", ", propertyStrs),
+                    String.join(", ", markStrs));
 
             Object[] newArgs = new Object[map.size()];
             int i = 0;

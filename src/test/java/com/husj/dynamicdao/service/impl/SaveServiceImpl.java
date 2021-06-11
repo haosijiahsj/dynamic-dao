@@ -1,12 +1,15 @@
 package com.husj.dynamicdao.service.impl;
 
 import com.husj.dynamicdao.DynamicDao;
+import com.husj.dynamicdao.InjectDao;
+import com.husj.dynamicdao.dao.EntityDao;
 import com.husj.dynamicdao.dao.SaveDao;
 import com.husj.dynamicdao.model.EntityPo;
 import com.husj.dynamicdao.service.SaveService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +21,9 @@ public class SaveServiceImpl implements SaveService {
 
     @DynamicDao
     private SaveDao dao;
+
+    @InjectDao
+    private EntityDao entityDao;
 
     @Override
     public int save1(String name, Integer sex, String tel, Boolean available) {
@@ -63,12 +69,18 @@ public class SaveServiceImpl implements SaveService {
 
     @Override
     public int save7(EntityPo entityPo) {
+        entityDao.save(entityPo);
         return dao.save7(entityPo);
     }
 
     @Override
     public int save8(EntityPo entityPo) {
         return dao.save8(entityPo);
+    }
+
+    @Override
+    public void save9(List<EntityPo> entityPos) {
+        dao.save9(entityPos);
     }
 
 }

@@ -3,10 +3,12 @@ package com.husj.dynamicdao.sql;
 import com.husj.dynamicdao.annotations.Query;
 import com.husj.dynamicdao.annotations.query.Condition;
 import com.husj.dynamicdao.annotations.query.Conditions;
+import com.husj.dynamicdao.reflect.MappingUtils;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import com.husj.dynamicdao.utils.SqlParseUtils;
 import com.husj.dynamicdao.utils.StringUtils;
+import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
@@ -20,6 +22,7 @@ import java.util.regex.Pattern;
  */
 public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
 
+    private static final String SELECT = "SELECT * FROM %s";
     private static final String WHERE = " WHERE";
     private static final String COLON = ":";
     private static final String LIMIT = " LIMIT ";
@@ -37,10 +40,22 @@ public class SelectSqlGenerator extends BaseSqlGenerator<Query> {
 
     @Override
     public SqlParam generateSql() {
-        boolean flag = annotation.value().toUpperCase().startsWith("SELECT");
+        String selectSql = annotation.value();
+        if (StringUtils.isEmpty(selectSql)) {
+            // 获取泛型真实类型，用于获取表名
+            Class<?> genericClass = method.getReturnType();
+            if (Collection.class.isAssignableFrom(genericClass)) {
+                ResolvableType resolvableType = ResolvableType.forMethodReturnType(method);
+                genericClass = resolvableType.getGeneric(0).resolve();
+            }
+            Assert.isTrue(genericClass != null, "Could not resolve table name !");
+            String tableName = MappingUtils.getTableNameByClass(genericClass);
+            selectSql = String.format(SELECT, tableName);
+        }
+        boolean flag = selectSql.toUpperCase().startsWith("SELECT");
         Assert.isTrue(flag, String.format("This SQL [%s] may be not a SELECT SQL !", annotation.value()));
 
-        String sql = annotation.value() + this.processConditions(method, queryParam.getParamMap());
+        String sql = selectSql + this.processConditions(method, queryParam.getParamMap());
 
         SqlParam sqlParam;
         if (queryParam.isNamed()) {

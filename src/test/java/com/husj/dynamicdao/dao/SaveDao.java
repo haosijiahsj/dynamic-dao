@@ -1,9 +1,11 @@
 package com.husj.dynamicdao.dao;
 
+import com.husj.dynamicdao.annotations.BatchSave;
 import com.husj.dynamicdao.annotations.Save;
 import com.husj.dynamicdao.annotations.query.Param;
 import com.husj.dynamicdao.model.EntityPo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -87,5 +89,8 @@ public interface SaveDao {
      */
     @Save(returnKey = true)
     int save8(EntityPo entityPo);
+
+    @BatchSave
+    void save9(List<EntityPo> entityPos);
 
 }

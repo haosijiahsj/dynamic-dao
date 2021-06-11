@@ -2,20 +2,24 @@ package com.husj.dynamicdao.processor;
 
 import com.husj.dynamicdao.annotations.Query;
 import com.husj.dynamicdao.annotations.query.MapperIgnore;
-import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.page.PageParam;
 import com.husj.dynamicdao.page.PageWrapper;
 import com.husj.dynamicdao.reflect.ReflectUtils;
 import com.husj.dynamicdao.sql.BaseSqlGenerator;
 import com.husj.dynamicdao.sql.SelectSqlGenerator;
+import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import com.husj.dynamicdao.utils.CollectionUtils;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 import org.springframework.util.NumberUtils;
 
-import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**

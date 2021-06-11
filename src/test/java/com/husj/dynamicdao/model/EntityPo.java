@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * @date 7/4 0004.
  */
 @Data
-//@Table("entity")
+@Table("entity")
 public class EntityPo {
 
     @IdColumn

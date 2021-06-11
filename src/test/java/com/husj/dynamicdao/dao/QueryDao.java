@@ -35,7 +35,10 @@ public interface QueryDao {
      * @param sex
      * @return
      */
-    @Query("SELECT * FROM entity e WHERE e.sex = ?")
+    @Query("")
+    @Conditions({
+            @Condition("sex = ?")
+    })
     List<EntityPo> query2(Integer sex);
 
     /**

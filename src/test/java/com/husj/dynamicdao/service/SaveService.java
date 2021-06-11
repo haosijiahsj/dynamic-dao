@@ -2,6 +2,8 @@ package com.husj.dynamicdao.service;
 
 import com.husj.dynamicdao.model.EntityPo;
 
+import java.util.List;
+
 /**
  * @author 胡胜钧
  * @date 7/4 0004.
@@ -23,5 +25,7 @@ public interface SaveService {
     int save7(EntityPo entityPo);
 
     int save8(EntityPo entityPo);
+
+    void save9(List<EntityPo> entityPos);
 
 }

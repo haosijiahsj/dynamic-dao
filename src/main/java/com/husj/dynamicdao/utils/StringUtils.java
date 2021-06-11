@@ -107,9 +107,4 @@ public class StringUtils {
         return sb.toString();
     }
 
-    public static void main(String[] args) {
-        System.out.println(underlineToHump("my_create_time"));
-        System.out.println(humpToUnderline("myCreateTime"));
-    }
-
 }

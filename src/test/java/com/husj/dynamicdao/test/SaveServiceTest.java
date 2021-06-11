@@ -9,6 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * @author 胡胜钧
@@ -85,6 +87,20 @@ public class SaveServiceTest {
 
         int n = service.save8(entityPo);
         log.info("{}", n);
+    }
+
+    @Test
+    public void save9Test() {
+        EntityPo entityPo = new EntityPo();
+        entityPo.setName("hhssjj");
+        entityPo.setSex(1);
+        entityPo.setTel("18812345678");
+        entityPo.setAvailable(false);
+        entityPo.setCreateTime(LocalDateTime.now());
+        entityPo.setStatus(Status.SUCCESS);
+        entityPo.setId(10000);
+
+        service.save9(Collections.singletonList(entityPo));
     }
 
 }

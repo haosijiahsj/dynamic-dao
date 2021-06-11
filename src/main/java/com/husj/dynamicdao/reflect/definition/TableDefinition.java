@@ -3,7 +3,9 @@ package com.husj.dynamicdao.reflect.definition;
 import com.husj.dynamicdao.utils.CollectionUtils;
 import lombok.Data;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * TableDefinition
@@ -30,6 +32,16 @@ public class TableDefinition {
             }
         }
         return null;
+    }
+
+    public List<String> getColumnNames() {
+        if (CollectionUtils.isEmpty(columnDefinitions)) {
+            return Collections.emptyList();
+        }
+
+        return columnDefinitions.stream()
+                .map(ColumnDefinition::getColumnName)
+                .collect(Collectors.toList());
     }
 
 }

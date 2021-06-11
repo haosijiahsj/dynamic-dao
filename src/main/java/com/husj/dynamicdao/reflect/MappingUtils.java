@@ -11,6 +11,7 @@ import org.springframework.util.Assert;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,16 +24,27 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MappingUtils {
 
+    private static final int DEFAULT_CAPACITY = 100;
+    private static final float loadFactory = 0.75f;
+
     /**
      * 存放处理好的映射关系
      */
-    private static final Map<Class<?>, TableDefinition> tableDefinitions = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, TableDefinition> tableDefinitions
+            = new LinkedHashMap<Class<?>, TableDefinition>(DEFAULT_CAPACITY, loadFactory, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry eldest) {
+            return size() > DEFAULT_CAPACITY;
+        }
+    };
 
     public static TableDefinition getTableDefinitionByClass(Class<?> clazz) {
         TableDefinition tableDefinition = tableDefinitions.get(clazz);
         if (tableDefinition == null) {
-            tableDefinition = getTableDefinition(clazz);
-            tableDefinitions.put(clazz, tableDefinition);
+            synchronized (MappingUtils.class) {
+                tableDefinition = getTableDefinition(clazz);
+                tableDefinitions.put(clazz, tableDefinition);
+            }
         }
 
         return tableDefinition;
@@ -106,6 +118,10 @@ public class MappingUtils {
         }
 
         return StringUtils.isEmpty(tableAnno.value()) ? clazz.getSimpleName() : tableAnno.value();
+    }
+
+    public static String getTableNameByClass(Class<?> clazz) {
+        return getTableDefinitionByClass(clazz).getTableName();
     }
 
 }

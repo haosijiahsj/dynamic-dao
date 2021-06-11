@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,9 +19,14 @@ public class SqlParam {
 
     private String sql;
     private Object[] args;
+    private List<Map<String, Object>> argMaps;
 
     public static SqlParam of(String sql, Object[] args) {
-        return new SqlParam(sql, args);
+        return new SqlParam(sql, args, null);
+    }
+
+    public static SqlParam of(String sql, Object[] args, List<Map<String, Object>> argMaps) {
+        return new SqlParam(sql, args, argMaps);
     }
 
 }
