@@ -23,7 +23,7 @@ public class SaveMethodProcessor extends BaseMethodProcessor<Save> {
     public Object process() throws Exception {
         // 参数预处理
         QueryParam queryParam = new QueryParam(args, argsAnnotations);
-        BaseSqlGenerator<Save> sqlGenerator = new InsertSqlGenerator(method, annotation, queryParam);
+        BaseSqlGenerator<Save> sqlGenerator = new InsertSqlGenerator(method, annotation, queryParam, jdbcTemplate);
         SqlParam sqlParam = sqlGenerator.generateSql();
 
         if (annotation.returnKey()) {

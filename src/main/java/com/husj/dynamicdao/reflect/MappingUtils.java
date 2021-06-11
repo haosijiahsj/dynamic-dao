@@ -1,8 +1,8 @@
 package com.husj.dynamicdao.reflect;
 
 import com.husj.dynamicdao.annotations.mapping.Column;
-import com.husj.dynamicdao.annotations.mapping.IdColumn;
-import com.husj.dynamicdao.annotations.mapping.IdType;
+import com.husj.dynamicdao.annotations.mapping.Id;
+import com.husj.dynamicdao.annotations.mapping.GenerationType;
 import com.husj.dynamicdao.annotations.mapping.Table;
 import com.husj.dynamicdao.reflect.definition.ColumnDefinition;
 import com.husj.dynamicdao.reflect.definition.TableDefinition;
@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * MappingUtils
@@ -73,20 +72,21 @@ public class MappingUtils {
             columnDefinition.setField(field);
             columnDefinition.setFieldName(field.getName());
 
-            IdColumn idColumnAnno = field.getAnnotation(IdColumn.class);
+            Id idAnno = field.getAnnotation(Id.class);
             Column columnAnno = field.getAnnotation(Column.class);
             String columnName;
-            if (idColumnAnno == null && columnAnno == null) {
+            if (idAnno == null && columnAnno == null) {
                 columnName = StringUtils.humpToUnderline(field.getName());
             } else {
-                if (idColumnAnno != null && columnAnno == null) {
+                if (idAnno != null && columnAnno == null) {
                     // 使用uuid作为主键，则必须将主键字段类型定义为String
-                    if (IdType.UUID.equals(idColumnAnno.idType())) {
+                    if (GenerationType.UUID.equals(idAnno.generationType())) {
                         Assert.isTrue(String.class.equals(field.getType()), "主键id使用uuid时，类型必须为String");
                     }
                     columnDefinition.setPrimaryKey(true);
-                    columnDefinition.setIdType(idColumnAnno.idType());
-                    columnName = StringUtils.isEmpty(idColumnAnno.value()) ? field.getName() : idColumnAnno.value();
+                    columnDefinition.setGenerationType(idAnno.generationType());
+                    columnDefinition.setGenerator(idAnno.generator());
+                    columnName = StringUtils.isEmpty(idAnno.value()) ? field.getName() : idAnno.value();
                 } else {
                     if (columnAnno.ignore()) {
                         continue;

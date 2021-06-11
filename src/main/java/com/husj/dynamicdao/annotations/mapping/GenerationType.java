@@ -6,6 +6,6 @@ package com.husj.dynamicdao.annotations.mapping;
  * @author shengjun.hu
  * @date 2021/6/8
  */
-public enum IdType {
-    AUTO, ASSIGN, UUID
+public enum GenerationType {
+    IDENTITY, ASSIGNED, UUID, GENERATED
 }

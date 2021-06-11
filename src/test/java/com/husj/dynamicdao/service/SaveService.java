@@ -28,4 +28,6 @@ public interface SaveService {
 
     void save9(List<EntityPo> entityPos);
 
+    void save10(EntityPo entityPo);
+
 }

@@ -2,10 +2,10 @@ package com.husj.dynamicdao.model;
 
 import com.husj.dynamicdao.annotations.mapping.Column;
 import com.husj.dynamicdao.annotations.mapping.EnumType;
-import com.husj.dynamicdao.annotations.mapping.IdColumn;
-import com.husj.dynamicdao.annotations.mapping.IdType;
+import com.husj.dynamicdao.annotations.mapping.GenerationType;
+import com.husj.dynamicdao.annotations.mapping.Id;
 import com.husj.dynamicdao.annotations.mapping.Table;
-import com.husj.dynamicdao.convert.StatusConverter;
+import com.husj.dynamicdao.genarator.IdGenerator;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Table("entity")
 public class EntityPo {
 
-    @IdColumn
+    @Id(generationType = GenerationType.GENERATED, generator = IdGenerator.class)
     private Integer id;
 
     @Column("name_")

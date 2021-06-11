@@ -13,9 +13,10 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface IdColumn {
+public @interface Id {
 
     String value() default "";
-    IdType idType() default IdType.AUTO;
+    GenerationType generationType() default GenerationType.IDENTITY;
+    Class<?> generator() default void.class;
 
 }

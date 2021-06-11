@@ -4,6 +4,7 @@ import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.lang.reflect.Method;
 
@@ -18,6 +19,7 @@ public abstract class BaseSqlGenerator<T> {
     protected Method method;
     protected T annotation;
     protected QueryParam queryParam;
+    protected JdbcTemplate jdbcTemplate;
 
     public abstract SqlParam generateSql() throws Exception;
 

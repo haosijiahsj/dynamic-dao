@@ -103,4 +103,18 @@ public class SaveServiceTest {
         service.save9(Collections.singletonList(entityPo));
     }
 
+    @Test
+    public void save10Test() {
+        EntityPo entityPo = new EntityPo();
+        entityPo.setName("hhssjj");
+        entityPo.setSex(1);
+        entityPo.setTel("18812345678");
+        entityPo.setAvailable(false);
+        entityPo.setCreateTime(LocalDateTime.now());
+        entityPo.setStatus(Status.SUCCESS);
+        entityPo.setId(10000);
+
+        service.save10(entityPo);
+    }
+
 }

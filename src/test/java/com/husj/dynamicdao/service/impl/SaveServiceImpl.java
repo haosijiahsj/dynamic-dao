@@ -83,4 +83,9 @@ public class SaveServiceImpl implements SaveService {
         dao.save9(entityPos);
     }
 
+    @Override
+    public void save10(EntityPo entityPo) {
+        dao.save10(entityPo);
+    }
+
 }

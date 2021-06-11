@@ -1,7 +1,7 @@
 package com.husj.dynamicdao.reflect.definition;
 
 import com.husj.dynamicdao.annotations.mapping.EnumType;
-import com.husj.dynamicdao.annotations.mapping.IdType;
+import com.husj.dynamicdao.annotations.mapping.GenerationType;
 import lombok.Data;
 
 import java.lang.reflect.Field;
@@ -19,8 +19,9 @@ public class ColumnDefinition {
     private Field field;
     private String columnName;
     private boolean primaryKey = false;
-    private IdType idType;
+    private GenerationType generationType;
     private Class<?> converter;
     private EnumType enumType;
+    private Class<?> generator;
 
 }

@@ -93,4 +93,7 @@ public interface SaveDao {
     @BatchSave
     void save9(List<EntityPo> entityPos);
 
+    @Save
+    void save10(EntityPo entityPo);
+
 }

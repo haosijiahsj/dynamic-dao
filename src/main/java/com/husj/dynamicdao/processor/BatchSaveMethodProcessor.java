@@ -25,7 +25,7 @@ public class BatchSaveMethodProcessor extends BaseMethodProcessor<BatchSave> {
         Assert.isTrue(queryParam.onlyOneArg(), "批量插入仅支持单个参数");
         Assert.isTrue(Collection.class.isAssignableFrom(queryParam.firstArg().getClass()), "批量插入仅支持集合类");
 
-        BaseSqlGenerator<BatchSave> sqlGenerator = new BatchInsertSqlGenerator(method, annotation, queryParam);
+        BaseSqlGenerator<BatchSave> sqlGenerator = new BatchInsertSqlGenerator(method, annotation, queryParam, jdbcTemplate);
         SqlParam sqlParam = sqlGenerator.generateSql();
 
         Map<String, Object>[] maps = sqlParam.getArgMaps().toArray(new Map[0]);
