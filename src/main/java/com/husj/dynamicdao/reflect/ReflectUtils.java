@@ -5,10 +5,11 @@ import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.reflect.definition.ColumnDefinition;
 import com.husj.dynamicdao.reflect.definition.TableDefinition;
 import com.husj.dynamicdao.support.AttributeConverter;
-import com.husj.dynamicdao.utils.StringUtils;
+import com.husj.dynamicdao.support.DefaultAttributeConverter;
 import com.husj.dynamicdao.utils.DateTimeUtils;
-import lombok.extern.slf4j.Slf4j;
 import com.husj.dynamicdao.utils.NumberUtils;
+import com.husj.dynamicdao.utils.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.Field;
@@ -16,7 +17,13 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -46,11 +53,11 @@ public class ReflectUtils {
             try {
                 Object columnValue = getObjectValue(arg, field);
                 if (columnValue != null) {
-                    Class<?> converter = columnDefinition.getConverter();
+                    Class<? extends AttributeConverter> converter = columnDefinition.getConverter();
                     EnumType enumType = columnDefinition.getEnumType();
                     // 处理转换器注解
-                    if (converter != null && !converter.equals(void.class)) {
-                        AttributeConverter attributeConverter = (AttributeConverter) converter.newInstance();
+                    if (converter != null && !converter.equals(DefaultAttributeConverter.class)) {
+                        AttributeConverter attributeConverter = converter.newInstance();
                         columnValue = attributeConverter.convertToDatabaseColumn(columnValue);
                     } else if (enumType != null && !EnumType.NONE.equals(enumType)) {
                         Assert.isTrue(field.getType().isEnum(), String.format("字段：[%s]不是枚举，无需定义EnumType !", field.getName()));
@@ -201,11 +208,11 @@ public class ReflectUtils {
                 }
 
                 Object targetValue;
-                Class<?> converter = columnDefinition.getConverter();
+                Class<? extends AttributeConverter> converter = columnDefinition.getConverter();
                 EnumType enumType = columnDefinition.getEnumType();
-                if (converter != null && !void.class.equals(converter)) {
+                if (converter != null && !DefaultAttributeConverter.class.equals(converter)) {
                     try {
-                        AttributeConverter attributeConverter = (AttributeConverter) converter.newInstance();
+                        AttributeConverter attributeConverter = converter.newInstance();
                         targetValue = attributeConverter.convertToEntityAttribute(value);
                     } catch (InstantiationException | IllegalAccessException e) {
                         throw new DynamicDaoException("Convert column to entity error!", e);

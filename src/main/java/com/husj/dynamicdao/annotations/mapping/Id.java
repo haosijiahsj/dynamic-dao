@@ -1,5 +1,8 @@
 package com.husj.dynamicdao.annotations.mapping;
 
+import com.husj.dynamicdao.support.DefaultIdentifierGenerator;
+import com.husj.dynamicdao.support.IdentifierGenerator;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,6 +20,6 @@ public @interface Id {
 
     String value() default "";
     GenerationType generationType() default GenerationType.IDENTITY;
-    Class<?> generator() default void.class;
+    Class<? extends IdentifierGenerator> generator() default DefaultIdentifierGenerator.class;
 
 }
