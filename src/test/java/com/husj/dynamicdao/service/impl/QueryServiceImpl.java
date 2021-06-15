@@ -22,8 +22,8 @@ import java.util.Set;
 @Service
 public class QueryServiceImpl implements QueryService {
 
-    @DynamicDao
-//    @Autowired
+//    @DynamicDao
+    @Autowired
     private QueryDao dao;
 
     @Override

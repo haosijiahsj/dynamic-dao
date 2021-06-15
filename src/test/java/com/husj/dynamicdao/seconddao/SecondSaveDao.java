@@ -10,7 +10,7 @@ import java.util.Map;
  * @author 胡胜钧
  * @date 7/4 0004.
  */
-public interface SaveDao {
+public interface SecondSaveDao {
 
     /**
      * JPA注解实体，返回更新条数

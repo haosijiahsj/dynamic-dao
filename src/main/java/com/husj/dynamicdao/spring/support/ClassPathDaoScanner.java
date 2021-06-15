@@ -25,9 +25,7 @@ public class ClassPathDaoScanner extends ClassPathBeanDefinitionScanner {
     @Setter
     private String dataSourceRef;
     @Setter
-    private String jdbcTemplateRef;
-    @Setter
-    private DataSource dataSource;
+    private String configurationRef;
 
     public ClassPathDaoScanner(BeanDefinitionRegistry registry) {
         super(registry);
@@ -58,13 +56,9 @@ public class ClassPathDaoScanner extends ClassPathBeanDefinitionScanner {
             if (StringUtils.isNotEmpty(dataSourceRef)) {
                 definition.getPropertyValues().add("dataSource", new RuntimeBeanReference(dataSourceRef));
                 autoWiredDataSource = false;
-            } else if (dataSource != null) {
-                definition.getPropertyValues().add("dataSource", dataSource);
-                autoWiredDataSource = false;
             }
-            if (StringUtils.isNotEmpty(jdbcTemplateRef)) {
-                definition.getPropertyValues().add("jdbcTemplate", new RuntimeBeanReference(jdbcTemplateRef));
-                autoWiredDataSource = false;
+            if (StringUtils.isNotEmpty(configurationRef)) {
+                definition.getPropertyValues().add("configuration", new RuntimeBeanReference(configurationRef));
             }
             // 自动注入数据源依赖，DynamicDaoFactoryBean继承的setDataSource方法会自动执行
             if (autoWiredDataSource) {

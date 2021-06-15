@@ -44,9 +44,9 @@ public class DynamicDaoScannerRegistrar implements ImportBeanDefinitionRegistrar
         if (StringUtils.isNotEmpty(dataSourceRef)) {
             builder.addPropertyValue("dataSourceRef", dataSourceRef);
         }
-        String jdbcTemplateRef = mapperScanAttrs.getString("jdbcTemplateRef");
-        if (StringUtils.isNotEmpty(jdbcTemplateRef)) {
-            builder.addPropertyValue("jdbcTemplateRef", jdbcTemplateRef);
+        String configurationRef = mapperScanAttrs.getString("configurationRef");
+        if (StringUtils.isNotEmpty(configurationRef)) {
+            builder.addPropertyValue("configurationRef", configurationRef);
         }
 
         String beanName = annotationMetadata.getClassName() + "#" + DynamicDaoScannerRegistrar.class.getSimpleName() + "#" + 0;

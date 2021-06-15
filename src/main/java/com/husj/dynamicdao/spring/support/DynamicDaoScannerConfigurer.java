@@ -23,16 +23,13 @@ public class DynamicDaoScannerConfigurer implements BeanDefinitionRegistryPostPr
     @Setter
     private String dataSourceRef;
     @Setter
-    private String jdbcTemplateRef;
-    @Setter
-    private DataSource dataSource;
+    private String configurationRef;
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanDefinitionRegistry) throws BeansException {
         ClassPathDaoScanner scanner = new ClassPathDaoScanner(beanDefinitionRegistry);
-        scanner.setDataSource(dataSource);
         scanner.setDataSourceRef(dataSourceRef);
-        scanner.setJdbcTemplateRef(jdbcTemplateRef);
+        scanner.setConfigurationRef(configurationRef);
         scanner.registerFilters();
 
         scanner.scan(StringUtils.tokenizeToStringArray(this.basePackage, ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS));

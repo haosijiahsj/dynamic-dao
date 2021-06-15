@@ -55,7 +55,7 @@ public class ReflectUtils {
                     Class<? extends AttributeConverter> converter = columnDefinition.getConverter();
                     EnumType enumType = columnDefinition.getEnumType();
                     // 处理转换器注解
-                    if (converter != null && !converter.equals(DefaultAttributeConverter.class)) {
+                    if (converter != null && !converter.equals(AttributeConverter.class)) {
                         AttributeConverter attributeConverter = converter.newInstance();
                         columnValue = attributeConverter.convertToDatabaseColumn(columnValue);
                     } else if (enumType != null && !EnumType.NONE.equals(enumType)) {
@@ -209,7 +209,7 @@ public class ReflectUtils {
                 Object targetValue;
                 Class<? extends AttributeConverter> converter = columnDefinition.getConverter();
                 EnumType enumType = columnDefinition.getEnumType();
-                if (converter != null && !DefaultAttributeConverter.class.equals(converter)) {
+                if (converter != null && !AttributeConverter.class.equals(converter)) {
                     try {
                         AttributeConverter attributeConverter = converter.newInstance();
                         targetValue = attributeConverter.convertToEntityAttribute(value);

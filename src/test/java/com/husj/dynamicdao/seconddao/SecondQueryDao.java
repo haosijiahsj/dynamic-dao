@@ -9,7 +9,7 @@ import com.husj.dynamicdao.model.EntityPo;
  * @date 7/21 0021.
  */
 @AssignDataSource("dataSourceTwo")
-public interface QueryDao {
+public interface SecondQueryDao {
 
     @Get
     EntityPo getById(Long id);

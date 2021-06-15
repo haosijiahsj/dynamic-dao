@@ -4,9 +4,11 @@ import com.husj.dynamicdao.InjectDao;
 import com.husj.dynamicdao.dao.QueryDao;
 import com.husj.dynamicdao.model.EntityPo;
 import com.husj.dynamicdao.model.Status;
-import com.husj.dynamicdao.seconddao.SaveDao;
+import com.husj.dynamicdao.seconddao.SecondSaveDao;
+import com.husj.dynamicdao.seconddao.SecondQueryDao;
 import com.husj.dynamicdao.service.MultiDataSourceService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,13 +23,14 @@ import java.util.List;
 public class MultiDataSourceServiceImpl implements MultiDataSourceService {
 
     @InjectDao
-    private SaveDao saveDao;
+    private SecondSaveDao secondSaveDao;
 
     @InjectDao
     private QueryDao queryDao;
 
-    @InjectDao
-    private com.husj.dynamicdao.seconddao.QueryDao secondQueryDao;
+//    @InjectDao
+    @Autowired
+    private SecondQueryDao secondQueryDao;
 
     @Override
     public void multiDataSourceTest() {
@@ -39,7 +42,7 @@ public class MultiDataSourceServiceImpl implements MultiDataSourceService {
         entityPo.setCreateTime(LocalDateTime.now());
         entityPo.setStatus(Status.SUCCESS);
 
-        saveDao.save1(entityPo);
+        secondSaveDao.save1(entityPo);
 
         List<EntityPo> list = queryDao.query10();
         log.info("{}", list);

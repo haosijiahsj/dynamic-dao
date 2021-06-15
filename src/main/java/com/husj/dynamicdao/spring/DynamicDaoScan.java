@@ -24,6 +24,6 @@ public @interface DynamicDaoScan {
     String[] value() default {};
     String[] basePackages() default {};
     String dataSourceRef() default "";
-    String jdbcTemplateRef() default "";
+    String configurationRef() default "";
 
 }
