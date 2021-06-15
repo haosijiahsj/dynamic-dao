@@ -1,5 +1,6 @@
 package com.husj.dynamicdao.utils;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -105,6 +106,10 @@ public class StringUtils {
         }
 
         return sb.toString();
+    }
+
+    public static String[] toStringArray(Collection<String> collection) {
+        return collection.toArray(new String[0]);
     }
 
 }
