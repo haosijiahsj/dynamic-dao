@@ -7,7 +7,6 @@ import com.husj.dynamicdao.reflect.MappingUtils;
 import com.husj.dynamicdao.reflect.ReflectUtils;
 import com.husj.dynamicdao.reflect.definition.ColumnDefinition;
 import com.husj.dynamicdao.reflect.definition.TableDefinition;
-import com.husj.dynamicdao.support.DefaultIdentifierGenerator;
 import com.husj.dynamicdao.support.IdentifierGenerator;
 import com.husj.dynamicdao.support.QueryParam;
 import com.husj.dynamicdao.support.SqlParam;
@@ -91,7 +90,7 @@ public class BatchInsertSqlGenerator extends BaseSqlGenerator<BatchSave> {
             map.put(idColumnDefinition.getColumnName(), idValue);
         } else if (GenerationType.GENERATED.equals(generationType)) {
             Class<? extends IdentifierGenerator> generator = idColumnDefinition.getGenerator();
-            if (DefaultIdentifierGenerator.class.equals(generator)) {
+            if (IdentifierGenerator.class.equals(generator)) {
                 throw new DynamicDaoException("自定义主键需要指定生成类!");
             }
             IdentifierGenerator identifierGenerator = generator.newInstance();

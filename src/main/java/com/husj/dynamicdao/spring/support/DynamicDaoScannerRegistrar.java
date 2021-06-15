@@ -28,10 +28,13 @@ public class DynamicDaoScannerRegistrar implements ImportBeanDefinitionRegistrar
 
         List<String> basePackages = new ArrayList<>();
         basePackages.addAll(
-                Arrays.stream(mapperScanAttrs.getStringArray("value")).filter(StringUtils::isNotEmpty).collect(Collectors.toList())
+                Arrays.stream(mapperScanAttrs.getStringArray("value"))
+                        .filter(StringUtils::isNotEmpty)
+                        .collect(Collectors.toList())
         );
         basePackages.addAll(
-                Arrays.stream(mapperScanAttrs.getStringArray("basePackages")).filter(StringUtils::isNotEmpty)
+                Arrays.stream(mapperScanAttrs.getStringArray("basePackages"))
+                        .filter(StringUtils::isNotEmpty)
                         .collect(Collectors.toList())
         );
 

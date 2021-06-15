@@ -1,8 +1,6 @@
 package com.husj.dynamicdao.spring.support;
 
-import com.husj.dynamicdao.support.InjectDaoConfiguration;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;

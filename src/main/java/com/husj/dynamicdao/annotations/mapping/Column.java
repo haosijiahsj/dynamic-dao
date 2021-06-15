@@ -1,7 +1,6 @@
 package com.husj.dynamicdao.annotations.mapping;
 
 import com.husj.dynamicdao.support.AttributeConverter;
-import com.husj.dynamicdao.support.DefaultAttributeConverter;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -20,7 +19,7 @@ public @interface Column {
 
     String value() default "";
     boolean ignore() default false;
-    Class<? extends AttributeConverter> converter() default DefaultAttributeConverter.class;
+    Class<? extends AttributeConverter> converter() default AttributeConverter.class;
     EnumType enumType() default EnumType.NONE;
 
 }

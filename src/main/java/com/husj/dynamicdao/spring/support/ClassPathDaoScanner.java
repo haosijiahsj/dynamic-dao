@@ -39,6 +39,7 @@ public class ClassPathDaoScanner extends ClassPathBeanDefinitionScanner {
             throw new IllegalArgumentException();
         }
 
+        // 注入dao bean
         this.processBeanDefinitions(definitionHolders);
 
         return definitionHolders;
@@ -50,6 +51,7 @@ public class ClassPathDaoScanner extends ClassPathBeanDefinitionScanner {
             String beanClassName = definition.getBeanClassName();
             // 设置真实的beanName
             definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName);
+            // 通过该FactoryBean.getObject获取代理对象
             definition.setBeanClass(DynamicDaoFactoryBean.class);
 
             boolean autoWiredDataSource = true;

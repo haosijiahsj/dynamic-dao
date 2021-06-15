@@ -5,7 +5,6 @@ import com.husj.dynamicdao.exceptions.DynamicDaoException;
 import com.husj.dynamicdao.reflect.definition.ColumnDefinition;
 import com.husj.dynamicdao.reflect.definition.TableDefinition;
 import com.husj.dynamicdao.support.AttributeConverter;
-import com.husj.dynamicdao.support.DefaultAttributeConverter;
 import com.husj.dynamicdao.utils.DateTimeUtils;
 import com.husj.dynamicdao.utils.NumberUtils;
 import com.husj.dynamicdao.utils.StringUtils;
